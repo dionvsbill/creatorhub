@@ -1,0 +1,1 @@
+export {default} from "@/app/legal/[slug]/page";export const generateStaticParams=()=>[{slug:"report-abuse"}];
