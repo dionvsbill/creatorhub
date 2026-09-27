@@ -1,0 +1,107 @@
+import Link from "next/link";
+import {notFound} from "next/navigation";
+const docs:Record<string,{title:string;summary:string;sections:[string,string][]}>={
+"terms-of-service":{title:"Terms of Service",summary:"The rules governing use of CreatorHub by creators, advertisers and other users.",sections:[
+["1. Agreement and eligibility","By creating an account or using CreatorHub, you agree to these Terms and the platform rules referenced here. You must provide accurate information, keep your credentials secure and comply with applicable law. If you use CreatorHub for an organization, you confirm that you are authorized to act for it."],
+["2. The platform","CreatorHub provides campaign discovery, creator participation, advertising operations, referrals, payment workflows, account management and related software. Availability can change as we maintain, improve or secure the service."],
+["3. Campaigns and tasks","Campaigns must have a lawful purpose, truthful briefs, clear deliverables and sufficient budget. Creators must follow campaign instructions, disclose required commercial relationships and submit authentic work. Advertisers must not request deceptive engagement, fake traffic, prohibited content or activity designed to manipulate a platform."],
+["4. Accounts and security","One person or organization may not create accounts to evade restrictions. You are responsible for activity performed through your account and must promptly report unauthorized access."],
+["5. Payments","Fees, creator earnings, refunds and withdrawal conditions are governed by the Payments & Refunds and Creator Earnings policies. Paystack or another payment provider may process transactions. A payment is not treated as completed merely because a browser reaches a success page; CreatorHub may verify the provider transaction before crediting an account."],
+["6. Intellectual property","You retain rights you own in your submitted content except for rights expressly granted under a campaign agreement. You grant CreatorHub the limited rights needed to operate, display, moderate, secure and promote the platform. Campaign-specific ownership or licence terms must be stated in the campaign."],
+["7. Suspension and termination","CreatorHub may restrict, suspend or terminate accounts when necessary to enforce these Terms, protect users, investigate fraud, comply with law or protect platform security. Appeals are handled under the Account Suspension & Appeals policy."],
+["8. Disputes and governing law","We aim to resolve disputes through support first. Nothing in these Terms removes rights that cannot lawfully be excluded. For Ghana-focused operations, applicable Ghanaian law may apply, subject to mandatory consumer and data-protection rights."],
+["9. Changes","We may update these Terms. Material changes will be communicated through the service or another reasonable channel. Continued use after the effective date means the updated Terms govern future use."],
+["10. Contact","Questions about these Terms can be submitted through the Contact Us or Help Center pages."]]},
+"privacy-policy":{title:"Privacy Policy",summary:"How CreatorHub collects, uses, protects and handles personal information.",sections:[
+["1. Information we collect","We may collect account details, contact information, profile and creator information, campaign activity, payment references, support communications, security logs and technical information needed to operate the service."],
+["2. Why we use information","We use information to create and secure accounts, operate campaigns, process payments and withdrawals, calculate eligible referrals, prevent abuse and fraud, provide support, improve the platform and meet legal or regulatory obligations."],
+["3. Ghana data protection","CreatorHub is designed to operate with Ghana's Data Protection Act, 2012 (Act 843) and related requirements administered by the Data Protection Commission. We apply access controls, retention practices and security measures appropriate to the information we process."],
+["4. Sharing","We may share necessary information with payment processors, infrastructure providers, campaign counterparties, service providers and authorities where legally required. We do not sell personal information as a business model."],
+["5. Retention and deletion","We retain information for as long as needed for the purposes described here, legitimate records, dispute handling, security and legal obligations. Requests concerning access, correction or deletion can be made through support, subject to lawful exceptions."],
+["6. Security","We use authentication controls, database policies, privileged server operations and monitoring designed to protect information. No internet service can guarantee absolute security."],
+["7. Cookies and similar technologies","We use essential cookies and similar technologies for sessions, security and platform functionality. Optional technologies, where used, are described in the Cookie Policy."],
+["8. Your choices","You can review and update many profile details in Settings and can contact support for privacy questions or requests."]]},
+"community-guidelines":{title:"Community Guidelines",summary:"Standards for respectful, authentic and safe participation.",sections:[
+["Respect and integrity","Do not harass, threaten, impersonate, dox, deceive or target people with abusive conduct."],
+["Authentic participation","Do not use bots, purchased engagement, fake accounts, click farms, fabricated evidence or coordinated manipulation to complete campaign tasks."],
+["Content safety","Do not use CreatorHub to distribute unlawful, exploitative, fraudulent or dangerous material. Sexual content involving minors, child exploitation, credible threats and instructions for serious wrongdoing are prohibited."],
+["Commercial transparency","Creators must accurately represent sponsorships and paid relationships where disclosure is required. Advertisers must not disguise advertising as independent consumer activity."],
+["Enforcement","We may remove content, limit features, hold transactions, suspend accounts or escalate reports when necessary to protect the community."]]},
+"creator-guidelines":{title:"Creator Guidelines",summary:"Requirements for creators participating in paid campaigns and platform tasks.",sections:[
+["Eligibility","The Creator Program is a paid membership program. A user must complete the required membership payment and maintain an active membership before accessing creator earning and eligible referral/task features."],
+["Authentic audiences","Do not inflate followers, views, clicks or engagement. Do not submit work generated by another creator and represented as your own."],
+["Campaign delivery","Follow the campaign brief, deadlines, platform rules and required disclosures. Keep evidence of completed work when a campaign requests it."],
+["Payments","Earnings are credited only after the relevant task or campaign is verified. Reversals, fraud checks, disputes and withdrawal review may delay availability."],
+["Professional conduct","Communicate respectfully with advertisers and CreatorHub staff. Do not move a campaign off-platform to evade fees, controls or moderation."]]},
+"advertiser-guidelines":{title:"Advertiser Guidelines",summary:"Requirements for businesses funding campaigns on CreatorHub.",sections:[
+["Accurate briefs","Describe the product, service, landing page, target audience, deliverables, budget and deadlines truthfully."],
+["Lawful advertising","Advertisers are responsible for ensuring claims, offers, products and landing pages comply with applicable law and the rules of the destination platform."],
+["No manipulation","Do not ask creators to generate fake reviews, fake followers, invalid clicks, misleading testimonials or other artificial signals."],
+["Budget and payment","Fund campaigns with valid payment methods. CreatorHub may pause campaigns where payment is disputed, reversed, suspicious or insufficient."],
+["Creator treatment","Do not request prohibited personal data, discriminatory selection or work unrelated to the agreed campaign deliverables."]]},
+"acceptable-use":{title:"Acceptable Use Policy",summary:"Activities and uses that are not permitted on CreatorHub.",sections:[
+["Prohibited activity","Fraud, phishing, credential theft, malware, unauthorized access, money laundering, sanctions evasion, impersonation, unlawful financial schemes and attempts to compromise CreatorHub or third-party systems are prohibited."],
+["Platform abuse","Do not scrape private data, bypass access controls, reverse engineer security controls, overload services, create accounts to evade enforcement or interfere with another user's account."],
+["Fraud and manipulation","No fake engagement, referral abuse, self-referrals, fabricated campaign evidence, duplicate identities or payment fraud."],
+["Enforcement","Violations may result in content removal, feature restrictions, transaction holds, suspension, termination and referral to appropriate authorities where required."]]},
+"payments-refunds":{title:"Payments & Refunds Policy",summary:"How platform payments, campaign funding, fees and refunds are handled.",sections:[
+["Payment verification","CreatorHub may verify payment status directly with the payment processor before recording funds as completed. Transaction references are used for idempotency and reconciliation."],
+["Campaign funding","Advertiser funding is applied to the relevant transaction or campaign according to the displayed checkout terms. A campaign may be paused if funding is reversed or unavailable."],
+["Refunds","Refund eligibility depends on the transaction, campaign state, provider rules and applicable consumer law. Contact support promptly with the transaction reference and reason for a refund request."],
+["Failed or reversed payments","A failed, reversed or disputed payment is not treated as settled. CreatorHub may reverse associated credits and pause related activity while reconciliation occurs."],
+["Fees","Any platform, processing or campaign fees will be shown before the applicable transaction where reasonably practicable."]]},
+"creator-earnings-withdrawal":{title:"Creator Earnings & Withdrawal Policy",summary:"Rules for earning, pending balances, verification and withdrawals.",sections:[
+["Eligible earnings","Creator earnings arise only from verified tasks, campaigns or other programs expressly marked as eligible. Joining the Creator Program does not guarantee a particular amount of work or income."],
+["Pending balances","Earnings may remain pending while campaign completion, fraud checks, advertiser payment and other verification are completed."],
+["Withdrawals","Available cash may be withdrawn using supported methods and subject to minimums, identity checks, fees, processing times and applicable law."],
+["Reversals","If a transaction is reversed, fraudulent or invalid, associated pending or credited earnings may be adjusted after review."],
+["Records","Keep accurate payout details. CreatorHub is not responsible for delays caused by incorrect recipient information supplied by the account holder."]]},
+"referral-policy":{title:"Referral Policy",summary:"Rules for CreatorHub referrals and commission eligibility.",sections:[
+["Eligibility","Referral commissions are available only to accounts that satisfy the current program requirements, including any active Creator Program membership requirement shown in the product."],
+["Attribution","A referral is attributed using the supported referral mechanism. Self-referrals, duplicate accounts, fabricated identities and attempts to overwrite attribution are not eligible."],
+["Commission","The applicable commission rate and qualifying event are displayed by the platform or program terms. A referral does not become payable until the qualifying event is verified and any review period has passed."],
+["Abuse","Referral spam, misleading claims, paid traffic designed to generate invalid conversions, automated signups and incentive manipulation are prohibited."],
+["Adjustments","CreatorHub may withhold, reverse or correct referral credits when a qualifying event is cancelled, refunded, fraudulent or incorrectly attributed."]]},
+"api-terms":{title:"API Terms",summary:"Rules for developers using CreatorHub's API and developer credentials.",sections:[
+["Credentials","API keys are confidential credentials. Store them securely, never expose them in browser bundles or public repositories and revoke compromised keys immediately."],
+["Permitted use","Use the API only for legitimate integrations and within the scopes granted to your key. Do not attempt to access another user's data or bypass authorization."],
+["Rate limits and availability","CreatorHub may impose rate limits, quotas or temporary restrictions to protect service reliability and security."],
+["Data handling","Developers must handle API data lawfully, use it only for the disclosed integration purpose and protect it against unauthorized access."],
+["Security incidents","Report suspected credential exposure, unauthorized access or vulnerabilities promptly through the Security or Contact pages."],
+["Termination","Keys may be revoked for abuse, security risk, expired access, policy violations or account suspension."]]},
+"cookie-policy":{title:"Cookie Policy",summary:"How cookies and similar technologies are used on CreatorHub.",sections:[
+["Essential technologies","Session, authentication, security and preference technologies may be necessary for CreatorHub to function."],
+["Optional technologies","If optional analytics or similar technologies are introduced, the platform will provide appropriate information and controls where required."],
+["Managing cookies","Browser settings can usually remove or block cookies, although doing so may affect sign-in and other functionality."],
+["Updates","This policy may change as platform functionality changes."]]},
+"intellectual-property":{title:"Copyright / Intellectual Property",summary:"How CreatorHub handles ownership, licences, copyright complaints and platform materials.",sections:[
+["User content","You retain ownership of original content you own. You grant only the licences needed for CreatorHub to host, display, transmit, moderate and operate that content, plus any campaign licence you expressly accept."],
+["Campaign rights","Advertisers and creators should state ownership, usage duration, territory, editing rights and permitted channels in the campaign brief or agreement where those details matter."],
+["CreatorHub materials","CreatorHub branding, software, interface design and platform materials are protected by applicable intellectual-property laws and may not be copied or redistributed without permission."],
+["Copyright complaints","A rights holder may report allegedly infringing content through Report Abuse or Contact Us with sufficient information to identify the work, the allegedly infringing material and the complainant."],
+["Good-faith reporting","Do not submit knowingly false infringement reports."]]},
+"account-appeals":{title:"Account Suspension & Appeals",summary:"How restrictions are applied and how users can request review.",sections:[
+["Why accounts may be restricted","Restrictions may follow fraud signals, policy violations, security incidents, payment disputes, abusive behavior, unlawful activity or other risks to users and the platform."],
+["Appeal","Use the support or appeal channel and provide your account email, relevant transaction or campaign references, the action being appealed and any evidence that helps explain the situation."],
+["Review","Appeals are reviewed according to the available evidence and applicable platform rules. Some restrictions may remain while an investigation or payment reconciliation is active."],
+["Outcome","CreatorHub may restore access, maintain a restriction, modify the restriction or request additional verification. We will communicate the outcome through an appropriate account or support channel where practicable."]]},
+"legal-compliance":{title:"Legal / Compliance",summary:"CreatorHub's compliance framework for platform operations.",sections:[
+["Ghana focus","CreatorHub is designed for Ghana-focused digital commerce and creator operations. We consider applicable electronic-transaction, consumer, privacy, advertising, payment and intellectual-property requirements."],
+["Electronic transactions","The platform provides key transaction information such as applicable terms, payment information and refund conditions through the service and related policies."],
+["Data protection","Personal-data handling is designed around Ghana's Data Protection Act, 2012 (Act 843), together with applicable contractual and security obligations."],
+["Compliance requests","Legal, regulatory and law-enforcement requests can be submitted through the Contact or Report Abuse channels and are handled according to applicable law."],
+["No legal advice","These pages describe platform rules and processes and are not a substitute for legal advice tailored to a particular person or business."]]},
+"security":{title:"Security",summary:"How CreatorHub approaches account, application and data security.",sections:[
+["Account protection","Use a unique password, protect verification codes and revoke API keys that may have been exposed."],
+["Platform controls","CreatorHub uses authenticated sessions, role-based controls, database row-level security, server-side privileged operations and transaction verification as part of its security architecture."],
+["Responsible disclosure","Report suspected vulnerabilities privately through Contact Us rather than exploiting or publicly disclosing them."],
+["Incident response","We may restrict affected features, rotate credentials, investigate logs and notify affected users or authorities where required."]]},
+"report-abuse":{title:"Report Abuse",summary:"Report fraud, harmful content, impersonation, security issues or policy violations.",sections:[
+["What to report","Report fraud, fake engagement, impersonation, harassment, prohibited content, payment abuse, referral abuse, copyright concerns or suspected security vulnerabilities."],
+["What to include","Provide the relevant URL or account, campaign or transaction reference, a concise description, dates and supporting evidence. Do not send passwords, API keys or unnecessary sensitive information."],
+["Urgent safety matters","If there is an immediate threat to life or safety, contact the appropriate emergency or law-enforcement service in addition to notifying CreatorHub."],
+["Review","Reports may be investigated using platform records and may result in content removal, restrictions, payment holds or account action when supported by the evidence."]]}
+};
+export function generateStaticParams(){return Object.keys(docs).map(slug=>({slug}))}
+export function generateMetadata({params}:{params:{slug:string}}){const d=docs[params.slug];return d?{title:`${d.title} | CreatorHub`,description:d.summary}:{title:"Legal | CreatorHub"}}
+export default function LegalPage({params}:{params:{slug:string}}){const d=docs[params.slug];if(!d)notFound();return <main className="min-h-screen bg-slate-50"><header className="border-b border-slate-200 bg-white"><div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-5"><Link href="/" className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-orange-600 font-bold text-white">C</span><span className="font-bold">CreatorHub</span></Link><Link href="/auth/sign-in" className="text-sm font-semibold text-slate-600 hover:text-orange-600">Sign in</Link></div></header><article className="mx-auto max-w-4xl px-5 py-12"><div className="mb-8"><p className="text-sm font-semibold text-orange-600">Legal & compliance</p><h1 className="mt-2 text-4xl font-bold tracking-tight text-slate-950">{d.title}</h1><p className="mt-3 max-w-3xl text-lg leading-8 text-slate-600">{d.summary}</p><div className="mt-5 text-xs text-slate-400">Version 1.0 · Last updated September 27, 2026</div></div><div className="card divide-y divide-slate-100 overflow-hidden bg-white">{d.sections.map(([heading,body])=><section key={heading} className="p-6 md:p-8"><h2 className="text-lg font-bold text-slate-900">{heading}</h2><p className="mt-3 text-sm leading-7 text-slate-600">{body}</p></section>)}</div><div className="mt-8"><Link href="/legal/legal-compliance" className="text-sm font-semibold text-orange-600">View Legal / Compliance framework</Link></div></article></main>}
