@@ -7,7 +7,7 @@ import { CheckCircle2, LoaderCircle, XCircle } from "lucide-react";
 
 function CallbackContent() {
   const p = useSearchParams();
-  const [state, setState] = useState("verifying");
+  const [state, setState] = useState("verifying");\n  const [reference, setReference] = useState("");
 
   useEffect(() => {
     const ref = p.get("reference");
