@@ -39,7 +39,8 @@ export async function middleware(request: NextRequest) {
     path.startsWith("/how-it-works") ||
     path.startsWith("/security") ||
     path.startsWith("/report-abuse") ||
-    path.startsWith("/appeal") ||\n    path.startsWith("/payment-complaint") ||
+    path.startsWith("/appeal") ||
+    path.startsWith("/payment-complaint") ||
     path.startsWith("/legal");
 
   if (protectedPath && !user) {
