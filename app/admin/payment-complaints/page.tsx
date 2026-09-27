@@ -35,7 +35,8 @@ export default function PaymentComplaints() {
   const [proofLinks, setProofLinks] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
-  const [resolving, setResolving] = useState(false);\n  const [activating, setActivating] = useState(false);
+  const [resolving, setResolving] = useState(false);
+  const [activating, setActivating] = useState(false);
   const [note, setNote] = useState("");
   const [filter, setFilter] = useState("OPEN");
   const [query, setQuery] = useState("");
@@ -218,4 +219,7 @@ export default function PaymentComplaints() {
 function Stat({ icon: Icon, label, value }: { icon: typeof ShieldCheck; label: string; value: string }) {
   return <div className="card p-5"><Icon size={18} className="text-orange-600" /><div className="mt-4 text-2xl font-bold">{value}</div><div className="mt-1 text-xs text-slate-500">{label}</div></div>;
 }
-\nfunction toCsv(rows:Complaint[]){const keys=[...new Set(rows.flatMap(r=>Object.keys(r)))];const esc=(v:unknown)=>`"${String(typeof v==="object"&&v!==null?JSON.stringify(v):v??"").replaceAll('"','""')}"`;return [keys.join(","),...rows.map(r=>keys.map(k=>esc((r as any)[k])).join("\\n"))].join("\\n")}
+
+function toCsv(rows:Complaint[]){const keys=[...new Set(rows.flatMap(r=>Object.keys(r)))];const esc=(v:unknown)=>`"${String(typeof v==="object"&&v!==null?JSON.stringify(v):v??"").replaceAll('"','""')}"`;return [keys.join(","),...rows.map(r=>keys.map(k=>esc((r as any)[k])).join("\
+"))].join("\
+")}
