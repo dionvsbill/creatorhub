@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import AppShell from "@/components/AppShell";
-import { CheckCircle2, ExternalLink, FileText, Loader2, Search, ShieldCheck, WalletCards, XCircle } from "lucide-react";
+import { CheckCircle2, ExternalLink, FileText, Loader2, Search, ShieldCheck, WalletCards, XCircle, UserRound } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 type Complaint = {
@@ -35,7 +35,7 @@ export default function PaymentComplaints() {
   const [proofLinks, setProofLinks] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
-  const [resolving, setResolving] = useState(false);
+  const [resolving, setResolving] = useState(false);\n  const [activating, setActivating] = useState(false);
   const [note, setNote] = useState("");
   const [filter, setFilter] = useState("OPEN");
   const [query, setQuery] = useState("");
@@ -88,6 +88,21 @@ export default function PaymentComplaints() {
     const refreshed = (await supabase().from("payment_complaints").select("*").eq("id", selected.id).single()).data as Complaint | null;
     if (refreshed) await selectComplaint(refreshed);
     setVerifying(false);
+  };
+
+  const activateCreator = async () => {
+    if (!selected || !["VERIFIED", "RESOLVED"].includes(selected.status)) return;
+    setActivating(true);
+    const { data: { session } } = await supabase().auth.getSession();
+    if (!session) { setActivating(false); return; }
+
+    const response = await fetch(`/api/admin/payment-complaints/${selected.id}/activate-creator`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+    const data = await response.json();
+    setNote(data.error || (data.success ? "Creator Program membership is now active." : "Could not activate Creator Program membership."));
+    setActivating(false);
   };
 
   const resolve = async () => {
@@ -183,7 +198,8 @@ export default function PaymentComplaints() {
 
             <div className="mt-5 grid gap-2 sm:grid-cols-2">
               <button onClick={verify} disabled={verifying} className="btn btn-secondary">{verifying ? <Loader2 size={15} className="animate-spin" /> : <ShieldCheck size={15} />} Verify with Paystack</button>
-              <button onClick={resolve} disabled={resolving || selected.status !== "VERIFIED"} className="btn btn-primary">{resolving ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />} Resolve complaint</button>
+              <button onClick={activateCreator} disabled={activating || !["VERIFIED", "RESOLVED"].includes(selected.status)} className="btn btn-primary">{activating ? <Loader2 size={15} className="animate-spin" /> : <UserRound size={15} />} Activate Creator Program</button>
+              <button onClick={resolve} disabled={resolving || selected.status !== "VERIFIED"} className="btn btn-secondary sm:col-span-2">{resolving ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />} Resolve complaint</button>
             </div>
             {selected.status !== "VERIFIED" && <p className="mt-3 flex items-center gap-2 text-xs text-slate-500"><XCircle size={14} />Resolve becomes available only after the payment is independently verified.</p>}
           </section> : <section className="card flex min-h-[500px] items-center justify-center p-8 text-center"><div><ShieldCheck size={34} className="mx-auto text-slate-300" /><h2 className="mt-4 font-semibold">Select a complaint</h2><p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">The review panel will show the user's proof, Paystack status, amount, channel and local transaction record.</p></div></section>}
