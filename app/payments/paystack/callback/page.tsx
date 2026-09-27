@@ -17,19 +17,13 @@ function CallbackContent() {
     }
 
     (async () => {
-      const { data: { session } } = await (await import("@/lib/supabase")).supabase().auth.getSession();
-      if (!session) {
-        setState("failed");
-        return;
-      }
-
       const response = await fetch("/api/paystack/verify", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ reference: ref }),
+        cache: "no-store",
       });
 
       const data = await response.json();
