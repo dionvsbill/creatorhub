@@ -52,7 +52,7 @@ function CallbackContent() {
             <XCircle className="mx-auto text-red-500" size={40} />
             <h1 className="mt-4 text-xl font-bold">Payment could not be confirmed</h1>
             <p className="mt-2 text-sm text-slate-500">No funds were released by the application.</p>
-            <Link href="/dashboard" className="btn btn-secondary mt-6">Return to dashboard</Link>
+            <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center"><Link href="/payment-complaint?reference={ref || ""}" className="btn btn-primary">File payment complaint</Link><Link href="/dashboard" className="btn btn-secondary">Return to dashboard</Link></div>
           </>
         )}
       </div>
