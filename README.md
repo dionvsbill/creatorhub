@@ -108,3 +108,31 @@ middleware.ts   Authentication and route protection
 ## Status
 
 CreatorHub is an actively developed platform. Production credentials, payment configuration, Google Ads access, database policies, and deployment configuration must be supplied by the deployment environment.
+
+
+## External API
+
+CreatorHub exposes a versioned REST API for external applications and services.
+
+Base path:
+
+`/api/v1`
+
+Authentication uses CreatorHub API keys with the `Authorization: Bearer` header.
+
+Available scopes:
+
+- `profile:read`
+- `campaigns:read`
+- `campaigns:write`
+
+Current endpoints:
+
+- `GET /api/v1/me` — authenticated account information
+- `GET /api/v1/campaigns` — active campaigns
+- `GET /api/v1/campaigns?mine=true` — campaigns owned by the authenticated advertiser
+- `POST /api/v1/campaigns` — create a draft advertiser campaign
+
+API keys are created and revoked from the authenticated Developer API settings. Raw keys are displayed only once and are stored server-side as SHA-256 hashes.
+
+Developer documentation is available at `/developers`.
