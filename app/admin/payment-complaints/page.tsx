@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import AppShell from "@/components/AppShell";
-import { CheckCircle2, ExternalLink, FileText, Loader2, Search, ShieldCheck, WalletCards, XCircle, UserRound } from "lucide-react";
+import { CheckCircle2, ExternalLink, FileText, Loader2, Search, ShieldCheck, WalletCards, XCircle, UserRound, Download, QrCode } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 type Complaint = {
@@ -130,6 +130,12 @@ export default function PaymentComplaints() {
     (profiles[r.user_id]?.email || "").toLowerCase().includes(query.toLowerCase())
   ));
 
+  const exportComplaints = (format:"csv"|"json") => {
+    const text = format === "json" ? JSON.stringify(filtered, null, 2) : toCsv(filtered);
+    const blob = new Blob([text], { type: format === "json" ? "application/json" : "text/csv" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = `creatorhub-payment-complaints-${Date.now()}.${format}`; a.click(); URL.revokeObjectURL(a.href);
+  };
   const openCount = rows.filter(r => r.status === "OPEN").length;
   const verifiedCount = rows.filter(r => r.status === "VERIFIED").length;
 
@@ -153,7 +159,7 @@ export default function PaymentComplaints() {
                 <Search size={16} className="text-slate-400" />
                 <input className="w-full bg-transparent py-2.5 text-sm outline-none" placeholder="Reference, subject or email" value={query} onChange={e => setQuery(e.target.value)} />
               </div>
-              <select className="input w-auto" value={filter} onChange={e => setFilter(e.target.value)}>
+              <button className="btn btn-secondary" onClick={()=>exportComplaints("csv")}><Download size={15}/> Export</button><select className="input w-auto" value={filter} onChange={e => setFilter(e.target.value)}>
                 <option>OPEN</option><option>VERIFYING</option><option>VERIFIED</option><option>RESOLVED</option><option>REJECTED</option><option>ALL</option>
               </select>
             </div>
@@ -212,3 +218,4 @@ export default function PaymentComplaints() {
 function Stat({ icon: Icon, label, value }: { icon: typeof ShieldCheck; label: string; value: string }) {
   return <div className="card p-5"><Icon size={18} className="text-orange-600" /><div className="mt-4 text-2xl font-bold">{value}</div><div className="mt-1 text-xs text-slate-500">{label}</div></div>;
 }
+\nfunction toCsv(rows:Complaint[]){const keys=[...new Set(rows.flatMap(r=>Object.keys(r)))];const esc=(v:unknown)=>`"${String(typeof v==="object"&&v!==null?JSON.stringify(v):v??"").replaceAll('"','""')}"`;return [keys.join(","),...rows.map(r=>keys.map(k=>esc((r as any)[k])).join("\\n"))].join("\\n")}
