@@ -9,10 +9,10 @@ import { supabase } from "@/lib/supabase";
 const tables=["profiles","campaigns","creator_applications","campaign_applications","transactions","referrals","notifications","audit_logs","google_ads_connections","api_keys","creator_memberships","support_requests","payment_complaints"] as const;
 type Row=Record<string,unknown>;
 
-export default function MonitoringDetails({searchParams}:{searchParams:{table?:string}}){
+export default function MonitoringDetails({searchParams,params}:{searchParams:{table?:string};params:{id:string}}){
  const table=tables.includes(searchParams.table as typeof tables[number])?searchParams.table!:"transactions";
  const [rows,setRows]=useState<Row[]>([]); const [selected,setSelected]=useState<Row|null>(null); const [loading,setLoading]=useState(true); const [query,setQuery]=useState("");
- useEffect(()=>{(async()=>{setLoading(true);const {data}=await supabase().from(table).select("*").order("created_at",{ascending:false}).limit(500);setRows((data||[]) as Row[]);setLoading(false)})()},[table]);
+ useEffect(()=>{(async()=>{setLoading(true);const s=supabase();const {data}=await s.from(table).select("*").order("created_at",{ascending:false}).limit(500);const list=(data||[]) as Row[];setRows(list);const found=list.find(r=>String(r.id)===params.id);if(found)setSelected(found);setLoading(false)})()},[table,params.id]);
  const filtered=useMemo(()=>rows.filter(r=>!query||JSON.stringify(r).toLowerCase().includes(query.toLowerCase())),[rows,query]);
  const exportRows=(format:"csv"|"json")=>{const payload=filtered;const text=format==="json"?JSON.stringify(payload,null,2):toCsv(payload);const blob=new Blob([text],{type:format==="json"?"application/json":"text/csv"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`creatorhub-${table}-${Date.now()}.${format}`;a.click();URL.revokeObjectURL(a.href)};
  return <AppShell admin><div className="mx-auto max-w-7xl">
