@@ -8,7 +8,12 @@ export default function PaymentComplaintPage() {
   const [form, setForm] = useState({ reference: "", subject: "", description: "" });
   const [files, setFiles] = useState<File[]>([]);
   const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
-  const [message, setMessage] = useState("");\n\n  useEffect(() => {\n    const reference = new URLSearchParams(window.location.search).get("reference");\n    if (reference) setForm(current => ({ ...current, reference }));\n  }, []);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    const reference = new URLSearchParams(window.location.search).get("reference");
+    if (reference) setForm(current => ({ ...current, reference }));
+  }, []);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
