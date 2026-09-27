@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Code2, KeyRound, ShieldCheck } from "lucide-react";
+import { ArrowRight, Code2, KeyRound, ShieldCheck } from "lucide-react";import Footer from "@/components/Footer";
 
 export default function DevelopersPage() {
   return (
@@ -28,7 +28,7 @@ export default function DevelopersPage() {
             <div className="py-4"><div className="font-mono text-sm">POST /api/v1/campaigns</div><p className="mt-1 text-sm text-slate-600">Creates a draft advertiser campaign. Scope: campaigns:write.</p></div>
           </div>
         </section>
-        <div className="mt-10 flex items-center justify-between rounded-2xl border bg-white p-6">
+        <div className="mt-10 rounded-2xl border bg-white p-6"><h2 className="text-xl font-semibold">Operational guidance</h2><p className="mt-2 text-sm leading-6 text-slate-600">Use API credentials only from trusted server-side environments. Handle expired or revoked credentials, respect rate limits and store only the data your integration requires. Key management remains inside the authenticated account workspace.</p></div><div className="mt-6 flex items-center justify-between rounded-2xl border bg-white p-6">
           <div><p className="font-semibold">Developer access</p><p className="text-sm text-slate-600">API key management is available to authenticated accounts.</p></div>
           <Link href="/settings" className="btn btn-primary">Manage keys <ArrowRight size={16}/></Link>
         </div>
