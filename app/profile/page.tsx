@@ -81,7 +81,14 @@ export default function ProfilePage() {
   const initials=(profile.display_name||email||"U").split(" ").map(x=>x[0]).join("").slice(0,2).toUpperCase();
   const active=membership?.status==="ACTIVE";
 
-  const socialLinks: { label: string; url: string | null; icon: LucideIcon }[] = [\n    { label: "YouTube", url: profile.youtube_url, icon: Video },\n    { label: "Instagram", url: profile.instagram_url, icon: Camera },\n    { label: "TikTok", url: profile.tiktok_url, icon: Link2 },\n    { label: "LinkedIn", url: profile.linkedin_url, icon: Link2 },\n  ];\n\n  return <AppShell admin={profile.role==="ADMIN"}>
+  const socialLinks: { label: string; url: string | null; icon: LucideIcon }[] = [
+    { label: "YouTube", url: profile.youtube_url, icon: Video },
+    { label: "Instagram", url: profile.instagram_url, icon: Camera },
+    { label: "TikTok", url: profile.tiktok_url, icon: Link2 },
+    { label: "LinkedIn", url: profile.linkedin_url, icon: Link2 },
+  ];
+
+  return <AppShell admin={profile.role==="ADMIN"}>
     <div className="mx-auto max-w-6xl">
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="relative h-40 bg-[linear-gradient(120deg,#07111f,#17253a_55%,#d97706)]"><div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(251,191,36,.25),transparent_35%)]"/></div>
