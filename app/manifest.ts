@@ -1,0 +1,2 @@
+import type {MetadataRoute} from "next";
+export default function manifest():MetadataRoute.Manifest{return{name:"CreatorHub",short_name:"CreatorHub",description:"Campaigns, creators and advertising management",start_url:"/",display:"standalone",background_color:"#ffffff",theme_color:"#ea580c",icons:[{src:"/icon.svg",sizes:"any",type:"image/svg+xml",purpose:"any maskable"}]}}
