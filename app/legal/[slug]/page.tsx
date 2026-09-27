@@ -1,4 +1,4 @@
-import Footer from "@/components/Footer";import Link from "next/link";import {SmoothScroll,PublicHeader} from "@/components/PublicExperience";import {notFound} from "next/navigation";
+import Footer from "@/components/Footer";import Link from "next/link";import {SmoothScroll,PublicHeader} from "@/components/PublicExperience";import LegalDocument from "@/components/LegalDocument";import {notFound} from "next/navigation";
 const docs:Record<string,{title:string;summary:string;sections:[string,string][]}>={
 "terms-of-service":{title:"Terms of Service",summary:"The rules governing use of CreatorHub by creators, advertisers and other users.",sections:[
 ["1. Agreement and eligibility","By creating an account or using CreatorHub, you agree to these Terms and the platform rules referenced here. You must provide accurate information, keep your credentials secure and comply with applicable law. If you use CreatorHub for an organization, you confirm that you are authorized to act for it."],
