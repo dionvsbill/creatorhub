@@ -1,3 +1,171 @@
 "use client";
-import {useState} from "react";import {supabase} from "@/lib/supabase";import {CheckCircle2,Loader2,Paperclip,Send,X} from "lucide-react";
-export default function SupportForm({type="CONTACT"}:{type?:string}){const [form,setForm]=useState({subject:"",email:"",reference:"",message:""});const [files,setFiles]=useState<File[]>([]);const [state,setState]=useState<"idle"|"loading"|"done"|"error">("idle");const submit=async(e:React.FormEvent)=>{e.preventDefault();setState("loading");const s=supabase();const {data:{user}}=await s.auth.getUser();if(!user){setState("error");return}const urls:string[]=[];for(const file of files){const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,"-");const path=`${user.id}/${crypto.randomUUID()}-${safe}`;const {error}=await s.storage.from("support-attachments").upload(path,file,{upsert:false,contentType:file.type});if(error){setState("error");return}urls.push(path)}const {error}=await s.from("support_requests").insert({user_id:user.id,type,subject:form.subject.trim(),email:form.email.trim()||null,reference:form.reference.trim()||null,message:form.message.trim(),attachment_urls:urls});setState(error?"error":"done")};if(state==="done")return <div className="rounded-[28px] border border-emerald-200 bg-emerald-50 p-8"><CheckCircle2 className="text-emerald-600"/><h2 className="mt-4 text-xl font-bold text-slate-950">Request received</h2><p className="mt-2 text-sm leading-6 text-slate-600">Your request is now in the CreatorHub support queue. Attachments were securely associated with the request.</p></div>;return <form onSubmit={submit} className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50 md:p-8"><div className="grid gap-5 md:grid-cols-2"><label className="text-sm font-semibold">Subject<input required className="input mt-2" value={form.subject} onChange={e=>setForm({...form,subject:e.target.value})}/></label><label className="text-sm font-semibold">Email<input type="email" className="input mt-2" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/></label><label className="text-sm font-semibold">Campaign / transaction reference<input className="input mt-2" value={form.reference} onChange={e=>setForm({...form,reference:e.target.value})}/></label><label className="text-sm font-semibold">Attachments<span className="mt-2 flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm font-medium hover:bg-slate-100"><Paperclip size={16}/>{files.length?files.length+" file(s) selected":"Add files"}<input type="file" multiple accept="image/*,.pdf,.txt,.doc,.docx" className="hidden" onChange={e=>setFiles(Array.from(e.target.files||[]))}/></span>{files.length>0&&<div className="mt-2 space-y-1">{files.map(f=><div key={f.name} className="flex items-center justify-between text-xs text-slate-500"><span className="truncate">{f.name}</span><button type="button" onClick={()=>setFiles(files.filter(x=>x!==f))}><X size={13}/></button></div>)}</label></div><label className="mt-5 block text-sm font-semibold">Message<textarea required minLength={10} rows={7} className="input mt-2 resize-none" value={form.message} onChange={e=>setForm({...form,message:e.target.value})}/></label>{state==="error"&&<p className="mt-3 text-sm text-red-600">We could not submit this request. Please confirm your files are supported and try again.</p>}<button disabled={state==="loading"} className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#0A1931] px-6 py-3 font-semibold text-white disabled:opacity-50">{state==="loading"?<Loader2 size={17} className="animate-spin"/>:<Send size={17}/>}Submit request</button></form>}
+
+import { useState, type FormEvent } from "react";
+import { CheckCircle2, Loader2, Paperclip, Send, X } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+
+type SupportFormProps = { type?: string };
+
+export default function SupportForm({ type = "CONTACT" }: SupportFormProps) {
+  const [form, setForm] = useState({
+    subject: "",
+    email: "",
+    reference: "",
+    message: "",
+  });
+  const [files, setFiles] = useState<File[]>([]);
+  const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setState("loading");
+
+    const s = supabase();
+    const {
+      data: { user },
+    } = await s.auth.getUser();
+
+    if (!user) {
+      setState("error");
+      return;
+    }
+
+    const urls: string[] = [];
+
+    for (const file of files) {
+      const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+      const path = `${user.id}/${crypto.randomUUID()}-${safe}`;
+      const { error } = await s.storage
+        .from("support-attachments")
+        .upload(path, file, { upsert: false, contentType: file.type });
+
+      if (error) {
+        setState("error");
+        return;
+      }
+
+      urls.push(path);
+    }
+
+    const { error } = await s.from("support_requests").insert({
+      user_id: user.id,
+      type,
+      subject: form.subject.trim(),
+      email: form.email.trim() || null,
+      reference: form.reference.trim() || null,
+      message: form.message.trim(),
+      attachment_urls: urls,
+    });
+
+    setState(error ? "error" : "done");
+  };
+
+  if (state === "done") {
+    return (
+      <div className="rounded-[28px] border border-emerald-200 bg-emerald-50 p-8">
+        <CheckCircle2 className="text-emerald-600" />
+        <h2 className="mt-4 text-xl font-bold text-slate-950">Request received</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          Your request is now in the CreatorHub support queue. Attachments were securely associated with the request.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <form
+      onSubmit={submit}
+      className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50 md:p-8"
+    >
+      <div className="grid gap-5 md:grid-cols-2">
+        <label className="text-sm font-semibold">
+          Subject
+          <input
+            required
+            className="input mt-2"
+            value={form.subject}
+            onChange={(e) => setForm({ ...form, subject: e.target.value })}
+          />
+        </label>
+
+        <label className="text-sm font-semibold">
+          Email
+          <input
+            type="email"
+            className="input mt-2"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
+        </label>
+
+        <label className="text-sm font-semibold">
+          Campaign / transaction reference
+          <input
+            className="input mt-2"
+            value={form.reference}
+            onChange={(e) => setForm({ ...form, reference: e.target.value })}
+          />
+        </label>
+
+        <label className="text-sm font-semibold">
+          Attachments
+          <span className="mt-2 flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm font-medium hover:bg-slate-100">
+            <Paperclip size={16} />
+            {files.length ? `${files.length} file(s) selected` : "Add files"}
+            <input
+              type="file"
+              multiple
+              accept="image/*,.pdf,.txt,.doc,.docx"
+              className="hidden"
+              onChange={(e) => setFiles(Array.from(e.target.files || []))}
+            />
+          </span>
+
+          {files.length > 0 && (
+            <div className="mt-2 space-y-1">
+              {files.map((file, index) => (
+                <div key={`${file.name}-${index}`} className="flex items-center justify-between text-xs text-slate-500">
+                  <span className="truncate">{file.name}</span>
+                  <button
+                    type="button"
+                    aria-label={`Remove ${file.name}`}
+                    onClick={() => setFiles(files.filter((_, i) => i !== index))}
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </label>
+      </div>
+
+      <label className="mt-5 block text-sm font-semibold">
+        Message
+        <textarea
+          required
+          minLength={10}
+          rows={7}
+          className="input mt-2 resize-none"
+          value={form.message}
+          onChange={(e) => setForm({ ...form, message: e.target.value })}
+        />
+      </label>
+
+      {state === "error" && (
+        <p className="mt-3 text-sm text-red-600">
+          We could not submit this request. Please confirm your files are supported and try again.
+        </p>
+      )}
+
+      <button
+        type="submit"
+        disabled={state === "loading"}
+        className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#0A1931] px-6 py-3 font-semibold text-white disabled:opacity-50"
+      >
+        {state === "loading" ? <Loader2 size={17} className="animate-spin" /> : <Send size={17} />}
+        Submit request
+      </button>
+    </form>
+  );
+}
