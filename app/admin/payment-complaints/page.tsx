@@ -28,7 +28,7 @@ type Complaint = {
 
 type Profile = { id: string; display_name: string | null; email: string | null };
 
-export default function PaymentComplaints() {
+export default function PaymentComplaints({ searchParams }: { searchParams: { reference?: string } }) {
   const [rows, setRows] = useState<Complaint[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [selected, setSelected] = useState<Complaint | null>(null);
@@ -57,6 +57,7 @@ export default function PaymentComplaints() {
   };
 
   useEffect(() => { load(); }, []);
+  useEffect(() => { if (searchParams.reference && rows.length) { const found = rows.find(r => r.reference === searchParams.reference); if (found) selectComplaint(found); } }, [searchParams.reference, rows]);
 
   const selectComplaint = async (complaint: Complaint) => {
     setSelected(complaint);
