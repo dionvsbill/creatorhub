@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { CheckCircle2, FileCheck2, Loader2, Paperclip, ShieldCheck, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -8,7 +8,7 @@ export default function PaymentComplaintPage() {
   const [form, setForm] = useState({ reference: "", subject: "", description: "" });
   const [files, setFiles] = useState<File[]>([]);
   const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState("");\n\n  useEffect(() => {\n    const reference = new URLSearchParams(window.location.search).get("reference");\n    if (reference) setForm(current => ({ ...current, reference }));\n  }, []);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
