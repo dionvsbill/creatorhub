@@ -72,19 +72,21 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         : `Paystack status: ${tx.status || "unknown"}; amount match: ${amountMatches}; currency match: ${currencyMatches}.`,
     }).eq("id", complaint.id);
 
-    if (verified && localTransaction?.status === "PENDING") {
-      await admin.from("transactions").update({
-        status: "COMPLETED",
-        metadata: {
-          ...(localTransaction.metadata || {}),
-          paystack_id: tx.id,
-          channel: tx.channel,
-          gateway_response: tx.gateway_response,
-          paid_at: tx.paid_at,
-          verified_at: new Date().toISOString(),
-          resolved_from_complaint: complaint.id,
-        },
-      }).eq("id", localTransaction.id);
+    if (verified && localTransaction) {
+      if (localTransaction.status === "PENDING") {
+        await admin.from("transactions").update({
+          status: "COMPLETED",
+          metadata: {
+            ...(localTransaction.metadata || {}),
+            paystack_id: tx.id,
+            channel: tx.channel,
+            gateway_response: tx.gateway_response,
+            paid_at: tx.paid_at,
+            verified_at: new Date().toISOString(),
+            resolved_from_complaint: complaint.id,
+          },
+        }).eq("id", localTransaction.id);
+      }
 
       if (localTransaction.metadata?.purpose === "creator_program") {
         await admin.from("creator_memberships").upsert({
@@ -96,6 +98,13 @@ export async function POST(req: Request, { params }: { params: { id: string } })
           paid_at: tx.paid_at || new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }, { onConflict: "user_id" });
+
+        await admin.from("notifications").insert({
+          user_id: complaint.user_id,
+          title: "Creator Program payment verified",
+          body: "Your Creator Program payment has been verified. Your membership is now active.",
+          type: "PAYMENT",
+        });
       }
     }
 
