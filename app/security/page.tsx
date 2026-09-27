@@ -1,1 +1,1 @@
-export {default} from "@/app/legal/[slug]/page";export const generateStaticParams=()=>[{slug:"security"}];
+import LegalPage from "@/app/legal/[slug]/page";export default function Security(){return <LegalPage params={{slug:"security"}}/>}
