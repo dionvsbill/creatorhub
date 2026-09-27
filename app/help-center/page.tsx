@@ -1,1 +1,122 @@
-"use client";import {useMemo,useState} from "react";import Link from "next/link";import Footer from "@/components/Footer";import {SmoothScroll,PublicHeader} from "@/components/PublicExperience";import {Search,ArrowRight,BookOpen,CreditCard,Users,ShieldCheck,Code2,Megaphone,UserRound,LifeBuoy} from "lucide-react";const topics=[["Account & access","Sign in, verification, profiles, security, sessions and account restrictions.",UserRound,"/settings"],["Creator Program","Membership, applications, eligibility, campaign work, evidence and earnings.",Users,"/creator"],["Campaigns","Campaign creation, applications, approvals, deliverables, evidence and reporting.",Megaphone,"/campaigns"],["Payments","Paystack funding, verification, refunds, balances and withdrawal workflows.",CreditCard,"/legal/payments-refunds"],["API & integrations","API keys, scopes, authentication, endpoints, webhooks and integration safety.",Code2,"/developers"],["Safety & trust","Abuse reports, security concerns, moderation, appeals and responsible disclosure.",ShieldCheck,"/security"],["Referrals","Attribution, eligibility, commissions, disputes and referral records.",ArrowRight,"/referrals"],["Policies & legal","Terms, privacy, community, creator, advertiser and platform policies.",BookOpen,"/legal"]];const faqs=[["How do I create a campaign?","Open Campaigns, define the objective, budget, deliverables, requirements and timeline, then follow the publication workflow."],["How does creator membership work?","The Creator Program uses an active membership state before creator-specific campaign application and earnings workflows become available."],["How are payments verified?","Payment records are finalized around server-side Paystack verification and transaction references rather than trusting a browser success screen."],["Where do creator earnings appear?","Verified campaign earnings are represented separately from platform Coins and can move through the configured withdrawal workflow."],["How do I report abuse?","Use Report Abuse for fraud, impersonation, prohibited content, fake engagement, harassment, payment abuse or security concerns."],["How do API keys work?","API keys are intended for approved integrations. Use scoped credentials, keep secrets server-side and rotate or revoke credentials when no longer needed."],["Can I appeal an account restriction?","Use the account appeal process and provide the relevant account or case context for review."],["How do I contact support?","Use Contact or the support form from an authenticated account and include campaign, transaction or account references where relevant."],["What should I never send to support?","Never send passwords, one-time codes, full payment credentials, private API secrets or unrelated users' personal information."],["How are refunds handled?","Refund requests are assessed against transaction state, applicable policy, provider records and campaign circumstances."],["What happens when an API request fails?","Check the HTTP status, response body, authentication scope and request identifier, then retry only when the error is transient and safe to repeat."],["How can I keep my account secure?","Use strong unique credentials, protect verification codes, review access and revoke API credentials that are no longer required."]];export default function Help(){const [query,setQuery]=useState("");const matches=useMemo(()=>{const q=query.trim().toLowerCase();if(!q)return [];return faqs.filter(([a,b])=>(a+" "+b).toLowerCase().includes(q)).slice(0,10)},[query]);return <><SmoothScroll/><PublicHeader/><main className="bg-slate-50"><section className="bg-[#0A1931] px-5 py-24 text-white"><div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1fr_.8fr] lg:items-center"><div><p className="font-semibold text-[#FDB913]">Help Center</p><h1 className="mt-4 text-5xl font-semibold tracking-[-.055em] sm:text-7xl">Find the exact answer before opening a ticket.</h1><p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">Search campaign, creator, payment, account, API, safety and policy guidance.</p><div className="mt-8 flex max-w-2xl items-center gap-3 rounded-2xl bg-white p-2 text-slate-900 shadow-2xl"><Search className="ml-3 text-slate-400" size={20}/><input value={query} onChange={e=>setQuery(e.target.value)} className="w-full bg-transparent px-2 py-3 outline-none" placeholder="Search help, payments, campaigns, API..." aria-label="Search help center"/></div>{query&&<div className="mt-4 rounded-2xl border border-white/10 bg-white/10 p-4"><div className="text-xs font-bold uppercase tracking-wider text-[#FDB913]">Search results</div>{matches.length?matches.map(([q])=><div key={q} className="mt-3 border-b border-white/10 pb-3 text-sm">{q}</div>):<div className="mt-3 text-sm text-slate-300">No exact result. Try a broader term or contact support.</div>}</div>}</div><img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=1200&q=85" className="h-[430px] w-full rounded-[32px] object-cover" alt="Support team working together"/></div></section><section className="mx-auto max-w-7xl px-5 py-20"><div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">{topics.map(([t,d,I,href])=>{const Icon=I as any;return <Link href={href as string} key={t} className="group rounded-[24px] border border-slate-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:shadow-xl"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 text-[#FDB913]"><Icon size={18}/></span><h2 className="mt-5 font-bold">{t}</h2><p className="mt-2 text-sm leading-6 text-slate-600">{d}</p><span className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-orange-600">Open guide <ArrowRight size={14}/></span></Link>})}</div>{query&&<section className="mt-16"><p className="text-xs font-bold uppercase tracking-[.16em] text-orange-600">Frequently asked questions</p><h2 className="mt-2 text-3xl font-semibold">Answers matching “{query}”</h2><div className="mt-6 grid gap-3 md:grid-cols-2">{matches.map(([q,a])=><details key={q} className="rounded-2xl border border-slate-200 bg-white p-5"><summary className="cursor-pointer font-semibold">{q}</summary><p className="mt-3 text-sm leading-7 text-slate-600">{a}</p></details>)}</div></section>}{!query&&<div className="mt-16 rounded-[28px] border border-dashed border-slate-300 bg-white p-8 text-center"><LifeBuoy className="mx-auto text-slate-400"/><h2 className="mt-4 text-xl font-bold">Search to reveal FAQs</h2><p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-500">The detailed FAQ library stays hidden until you search, keeping this page focused.</p></div>}<div className="mt-10 flex flex-wrap gap-3"><Link href="/contact" className="rounded-full bg-[#0A1931] px-6 py-3 font-semibold text-white">Contact support</Link><Link href="/report-abuse" className="rounded-full border border-slate-300 px-6 py-3 font-semibold">Report an issue</Link></div></section></main><Footer/></>}
+"use client";
+
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import Footer from "@/components/Footer";
+import { SmoothScroll, PublicHeader } from "@/components/PublicExperience";
+import { Search, ArrowRight, BookOpen, CreditCard, Users, ShieldCheck, Code2, Megaphone, UserRound, LifeBuoy, type LucideIcon } from "lucide-react";
+
+type Topic = {
+  title: string;
+  description: string;
+  Icon: LucideIcon;
+  href: string;
+};
+
+const topics: Topic[] = [
+  { title: "Account & access", description: "Sign in, verification, profiles, security, sessions and account restrictions.", Icon: UserRound, href: "/settings" },
+  { title: "Creator Program", description: "Membership, applications, eligibility, campaign work, evidence and earnings.", Icon: Users, href: "/creator" },
+  { title: "Campaigns", description: "Campaign creation, applications, approvals, deliverables, evidence and reporting.", Icon: Megaphone, href: "/campaigns" },
+  { title: "Payments", description: "Paystack funding, verification, refunds, balances and withdrawal workflows.", Icon: CreditCard, href: "/legal/payments-refunds" },
+  { title: "API & integrations", description: "API keys, scopes, authentication, endpoints, webhooks and integration safety.", Icon: Code2, href: "/developers" },
+  { title: "Safety & trust", description: "Abuse reports, security concerns, moderation, appeals and responsible disclosure.", Icon: ShieldCheck, href: "/security" },
+  { title: "Referrals", description: "Attribution, eligibility, commissions, disputes and referral records.", Icon: ArrowRight, href: "/referrals" },
+  { title: "Policies & legal", description: "Terms, privacy, community, creator, advertiser and platform policies.", Icon: BookOpen, href: "/legal" },
+];
+
+const faqs = [
+  ["How do I create a campaign?", "Open Campaigns, define the objective, budget, deliverables, requirements and timeline, then follow the publication workflow."],
+  ["How does creator membership work?", "The Creator Program uses an active membership state before creator-specific campaign application and earnings workflows become available."],
+  ["How are payments verified?", "Payment records are finalized around server-side Paystack verification and transaction references rather than trusting a browser success screen."],
+  ["Where do creator earnings appear?", "Verified campaign earnings are represented separately from platform Coins and can move through the configured withdrawal workflow."],
+  ["How do I report abuse?", "Use Report Abuse for fraud, impersonation, prohibited content, fake engagement, harassment, payment abuse or security concerns."],
+  ["How do API keys work?", "API keys are intended for approved integrations. Use scoped credentials, keep secrets server-side and rotate or revoke credentials when no longer needed."],
+  ["Can I appeal an account restriction?", "Use the account appeal process and provide the relevant account or case context for review."],
+  ["How do I contact support?", "Use Contact or the support form from an authenticated account and include campaign, transaction or account references where relevant."],
+  ["What should I never send to support?", "Never send passwords, one-time codes, full payment credentials, private API secrets or unrelated users' personal information."],
+  ["How are refunds handled?", "Refund requests are assessed against transaction state, applicable policy, provider records and campaign circumstances."],
+  ["What happens when an API request fails?", "Check the HTTP status, response body, authentication scope and request identifier, then retry only when the error is transient and safe to repeat."],
+  ["How can I keep my account secure?", "Use strong unique credentials, protect verification codes, review access and revoke API credentials that are no longer required."],
+];
+
+export default function Help() {
+  const [query, setQuery] = useState("");
+  const matches = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    return faqs.filter(([question, answer]) => (question + " " + answer).toLowerCase().includes(q)).slice(0, 10);
+  }, [query]);
+
+  return (
+    <>
+      <SmoothScroll />
+      <PublicHeader />
+      <main className="bg-slate-50">
+        <section className="bg-[#0A1931] px-5 py-24 text-white">
+          <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1fr_.8fr] lg:items-center">
+            <div>
+              <p className="font-semibold text-[#FDB913]">Help Center</p>
+              <h1 className="mt-4 text-5xl font-semibold tracking-[-.055em] sm:text-7xl">Find the exact answer before opening a ticket.</h1>
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">Search campaign, creator, payment, account, API, safety and policy guidance.</p>
+              <div className="mt-8 flex max-w-2xl items-center gap-3 rounded-2xl bg-white p-2 text-slate-900 shadow-2xl">
+                <Search className="ml-3 text-slate-400" size={20} />
+                <input value={query} onChange={e => setQuery(e.target.value)} className="w-full bg-transparent px-2 py-3 outline-none" placeholder="Search help, payments, campaigns, API..." aria-label="Search help center" />
+              </div>
+              {query && (
+                <div className="mt-4 rounded-2xl border border-white/10 bg-white/10 p-4">
+                  <div className="text-xs font-bold uppercase tracking-wider text-[#FDB913]">Search results</div>
+                  {matches.length ? matches.map(([question]) => (
+                    <div key={question} className="mt-3 border-b border-white/10 pb-3 text-sm">{question}</div>
+                  )) : <div className="mt-3 text-sm text-slate-300">No exact result. Try a broader term or contact support.</div>}
+                </div>
+              )}
+            </div>
+            <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=1200&q=85" className="h-[430px] w-full rounded-[32px] object-cover" alt="Support team working together" />
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-7xl px-5 py-20">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {topics.map(({ title, description, Icon, href }) => (
+              <Link href={href} key={title} className="group rounded-[24px] border border-slate-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 text-[#FDB913]"><Icon size={18} /></span>
+                <h2 className="mt-5 font-bold">{title}</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
+                <span className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-orange-600">Open guide <ArrowRight size={14} /></span>
+              </Link>
+            ))}
+          </div>
+
+          {query && (
+            <section className="mt-16">
+              <p className="text-xs font-bold uppercase tracking-[.16em] text-orange-600">Frequently asked questions</p>
+              <h2 className="mt-2 text-3xl font-semibold">Answers matching “{query}”</h2>
+              <div className="mt-6 grid gap-3 md:grid-cols-2">
+                {matches.map(([question, answer]) => (
+                  <details key={question} className="rounded-2xl border border-slate-200 bg-white p-5">
+                    <summary className="cursor-pointer font-semibold">{question}</summary>
+                    <p className="mt-3 text-sm leading-7 text-slate-600">{answer}</p>
+                  </details>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {!query && (
+            <div className="mt-16 rounded-[28px] border border-dashed border-slate-300 bg-white p-8 text-center">
+              <LifeBuoy className="mx-auto text-slate-400" />
+              <h2 className="mt-4 text-xl font-bold">Search to reveal FAQs</h2>
+              <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-500">The detailed FAQ library stays hidden until you search, keeping this page focused.</p>
+            </div>
+          )}
+
+          <div className="mt-10 flex flex-wrap gap-3">
+            <Link href="/contact" className="rounded-full bg-[#0A1931] px-6 py-3 font-semibold text-white">Contact support</Link>
+            <Link href="/report-abuse" className="rounded-full border border-slate-300 px-6 py-3 font-semibold">Report an issue</Link>
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </>
+  );
+}
