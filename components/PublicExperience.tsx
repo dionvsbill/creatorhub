@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useRef} from "react";
+import {useEffect,useRef,useState} from "react";
 import {motion,useScroll,useSpring,useTransform} from "framer-motion";
 import Lenis from "lenis";
 import Image from "next/image";
