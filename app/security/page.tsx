@@ -1,1 +1,81 @@
-"use client";import Footer from "@/components/Footer";import {SmoothScroll,PublicHeader} from "@/components/PublicExperience";import Link from "next/link";import {ShieldCheck,Database,KeyRound,FileClock,AlertTriangle,LockKeyhole} from "lucide-react";const controls=[["Account protection","Authentication and account recovery are kept separate from administrative role decisions.",LockKeyhole],["Database controls","Sensitive data is protected through Row Level Security and server-side privileged operations.",Database],["Credential protection","API secrets and payment secrets should remain server-side and be rotated or revoked when necessary.",KeyRound],["Auditability","Important operational actions can be represented in audit records so support and administration have context.",FileClock],["Transaction verification","Payment-dependent records use server-side verification rather than trusting client-only success states.",ShieldCheck],["Responsible disclosure","Security concerns can be reported with safe reproduction details without accessing unrelated data.",AlertTriangle]];export default function Security(){return <><SmoothScroll/><PublicHeader/><main className="bg-white"><section className="bg-[#0A1931] px-5 py-24 text-white"><div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-2 lg:items-center"><div><p className="font-semibold text-[#FDB913]">Security center</p><h1 className="mt-4 text-5xl font-semibold tracking-[-.055em] sm:text-7xl">Protection is a platform function, not a page.</h1><p className="mt-6 text-lg leading-8 text-slate-300">CreatorHub combines authentication, role controls, database policies, transaction verification, support processes and audit records into one security model.</p></div><img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=85" className="h-[430px] w-full rounded-[32px] object-cover" alt="Security operations"/></div></section><section className="mx-auto max-w-7xl px-5 py-20"><div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{controls.map(([t,d,I])=>{const Icon=I as any;return <div key={t} className="rounded-[26px] border border-slate-200 bg-white p-7 shadow-sm"><Icon size={21}/><h2 className="mt-5 font-bold">{t}</h2><p className="mt-3 text-sm leading-7 text-slate-600">{d}</p></div>})}</div></section><section className="bg-slate-50"><div className="mx-auto max-w-7xl px-5 py-20"><div className="grid gap-8 lg:grid-cols-2"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-orange-600">Security responsibilities</p><h2 className="mt-3 text-3xl font-semibold">What users and integrations should protect.</h2></div><div className="space-y-3">{["Never share passwords or one-time verification codes","Keep API secrets outside client-side applications","Use minimum API scopes","Verify webhook authenticity before processing events","Report suspicious account or payment activity promptly","Do not access or modify data outside your authorization"].map(x=><div key={x} className="rounded-xl border border-slate-200 bg-white p-4 text-sm font-medium">{x}</div>)}</div></div><Link href="/report-abuse" className="mt-8 inline-flex rounded-full bg-[#0A1931] px-6 py-3 font-semibold text-white">Report a security issue</Link></div></section></main><Footer/></>}
+"use client";
+
+import Footer from "@/components/Footer";
+import { SmoothScroll, PublicHeader } from "@/components/PublicExperience";
+import Link from "next/link";
+import { ShieldCheck, Database, KeyRound, FileClock, AlertTriangle, LockKeyhole, type LucideIcon } from "lucide-react";
+
+type Control = {
+  title: string;
+  description: string;
+  Icon: LucideIcon;
+};
+
+const controls: Control[] = [
+  { title: "Account protection", description: "Authentication and account recovery are kept separate from administrative role decisions.", Icon: LockKeyhole },
+  { title: "Database controls", description: "Sensitive data is protected through Row Level Security and server-side privileged operations.", Icon: Database },
+  { title: "Credential protection", description: "API secrets and payment secrets should remain server-side and be rotated or revoked when necessary.", Icon: KeyRound },
+  { title: "Auditability", description: "Important operational actions can be represented in audit records so support and administration have context.", Icon: FileClock },
+  { title: "Transaction verification", description: "Payment-dependent records use server-side verification rather than trusting client-only success states.", Icon: ShieldCheck },
+  { title: "Responsible disclosure", description: "Security concerns can be reported with safe reproduction details without accessing unrelated data.", Icon: AlertTriangle },
+];
+
+const responsibilities = [
+  "Never share passwords or one-time verification codes",
+  "Keep API secrets outside client-side applications",
+  "Use minimum API scopes",
+  "Verify webhook authenticity before processing events",
+  "Report suspicious account or payment activity promptly",
+  "Do not access or modify data outside your authorization",
+];
+
+export default function Security() {
+  return (
+    <>
+      <SmoothScroll />
+      <PublicHeader />
+      <main className="bg-white">
+        <section className="bg-[#0A1931] px-5 py-24 text-white">
+          <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-2 lg:items-center">
+            <div>
+              <p className="font-semibold text-[#FDB913]">Security center</p>
+              <h1 className="mt-4 text-5xl font-semibold tracking-[-.055em] sm:text-7xl">Protection is a platform function, not a page.</h1>
+              <p className="mt-6 text-lg leading-8 text-slate-300">CreatorHub combines authentication, role controls, database policies, transaction verification, support processes and audit records into one security model.</p>
+            </div>
+            <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=85" className="h-[430px] w-full rounded-[32px] object-cover" alt="Security operations" />
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-7xl px-5 py-20">
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {controls.map(({ title, description, Icon }) => (
+              <div key={title} className="rounded-[26px] border border-slate-200 bg-white p-7 shadow-sm">
+                <Icon size={21} />
+                <h2 className="mt-5 font-bold">{title}</h2>
+                <p className="mt-3 text-sm leading-7 text-slate-600">{description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="bg-slate-50">
+          <div className="mx-auto max-w-7xl px-5 py-20">
+            <div className="grid gap-8 lg:grid-cols-2">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[.16em] text-orange-600">Security responsibilities</p>
+                <h2 className="mt-3 text-3xl font-semibold">What users and integrations should protect.</h2>
+              </div>
+              <div className="space-y-3">
+                {responsibilities.map(item => (
+                  <div key={item} className="rounded-xl border border-slate-200 bg-white p-4 text-sm font-medium">{item}</div>
+                ))}
+              </div>
+            </div>
+            <Link href="/report-abuse" className="mt-8 inline-flex rounded-full bg-[#0A1931] px-6 py-3 font-semibold text-white">Report a security issue</Link>
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </>
+  );
+}
