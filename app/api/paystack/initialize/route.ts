@@ -41,7 +41,23 @@ export async function POST(req: Request) {
 
     const reference = "CH_" + crypto.randomUUID().replaceAll("-", "");
     const purpose = String(body.purpose || "campaign_funding");
+    const campaignId = body.campaign_id ? String(body.campaign_id) : null;
     const description = body.description || "Payment";
+
+    if (purpose === "campaign_funding") {
+      if (!campaignId) return NextResponse.json({ error: "Campaign ID required." }, { status: 400 });
+      const { data: campaign, error: campaignError } = await admin
+        .from("campaigns")
+        .select("id,advertiser_id,status,budget,platform_fee,currency,funding_status")
+        .eq("id", campaignId)
+        .maybeSingle();
+      if (campaignError || !campaign) return NextResponse.json({ error: "Campaign not found." }, { status: 404 });
+      if (campaign.advertiser_id !== user.id) return NextResponse.json({ error: "Campaign ownership mismatch." }, { status: 403 });
+      if (campaign.status !== "PENDING_FUNDING") return NextResponse.json({ error: "This campaign is not ready for funding." }, { status: 400 });
+      if (campaign.funding_status === "PAID") return NextResponse.json({ error: "This campaign is already funded." }, { status: 400 });
+      const expectedTotal = Number(campaign.budget) + Number(campaign.platform_fee);
+      if (Math.abs(amount - expectedTotal) > 0.01) return NextResponse.json({ error: "Funding amount does not match the campaign total." }, { status: 400 });
+    }
 
     const { data: created, error: createError } = await admin
       .from("transactions")
@@ -82,6 +98,7 @@ export async function POST(req: Request) {
         metadata: {
           user_id: user.id,
           purpose,
+          campaign_id: campaignId,
         },
       };
 
@@ -108,6 +125,7 @@ export async function POST(req: Request) {
             gateway_response: data?.message || null,
             metadata: {
               purpose,
+              campaign_id: campaignId,
               initialization_status: "FAILED",
               initialization_response: data || null,
             },
@@ -128,6 +146,7 @@ export async function POST(req: Request) {
         .update({
           metadata: {
             purpose,
+            campaign_id: campaignId,
             initialization_status: "INITIALIZED",
             authorization_url: data.data?.authorization_url || null,
           },
