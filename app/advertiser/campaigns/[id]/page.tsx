@@ -19,6 +19,8 @@ export default function AdvertiserCampaignDetail() {
   const [campaign, setCampaign] = useState<any>(null);
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [paying, setPaying] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -52,6 +54,22 @@ export default function AdvertiserCampaignDetail() {
     }
 
     setLoading(false);
+  };
+
+  const fundCampaign = async () => {
+    setPaying(true); setPaymentError("");
+    const s = supabase();
+    const { data: { session } } = await s.auth.getSession();
+    if (!session) { window.location.href = "/auth/sign-in"; return; }
+    const total = Number(campaign?.budget || 0) + Number(campaign?.platform_fee || 0);
+    const response = await fetch("/api/paystack/initialize", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ amount: total, purpose: "campaign_funding", campaign_id: campaign.id, description: `Funding: ${campaign.title}` }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.authorization_url) { setPaymentError(data.error || "Could not start payment."); setPaying(false); return; }
+    window.location.href = data.authorization_url;
   };
 
   useEffect(() => {
@@ -107,11 +125,28 @@ export default function AdvertiserCampaignDetail() {
             </div>
           </div>
 
+          {campaign.status === "PENDING_FUNDING" && (
+            <div className="mx-6 mt-6 rounded-2xl border border-orange-200 bg-orange-50 p-5">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <div className="text-sm font-bold text-orange-900">Approved — funding required</div>
+                  <p className="mt-1 text-sm text-orange-800">CreatorHub approved this campaign. Pay the displayed total to activate it and make it available to creators.</p>
+                </div>
+                <button onClick={fundCampaign} disabled={paying} className="btn btn-primary shrink-0">
+                  <WalletCards size={16}/>{paying ? "Opening payment..." : `Fund GH₵${(Number(campaign.budget||0)+Number(campaign.platform_fee||0)).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`}
+                </button>
+              </div>
+              {paymentError && <div className="mt-3 rounded-xl border border-red-200 bg-white p-3 text-sm text-red-700">{paymentError}</div>}
+            </div>
+          )}
+
           <div className="grid gap-4 border-b border-slate-200 p-6 sm:grid-cols-2 lg:grid-cols-4">
             <Info label="Budget" value={`GH₵${Number(campaign.budget || 0).toLocaleString()}`} />
             <Info label="Spent" value={`GH₵${Number(campaign.spent || 0).toLocaleString()}`} />
             <Info label="Platform fee" value={`GH₵${Number(campaign.platform_fee || 0).toLocaleString()}`} />
             <Info label="Applications" value={String(applications.length)} />
+            <Info label="Funding status" value={campaign.funding_status || "REQUIRED"} />
+            <Info label="Total required" value={`GH₵${(Number(campaign.budget||0)+Number(campaign.platform_fee||0)).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`} />
           </div>
 
           <div className="grid gap-6 p-6 lg:grid-cols-[1fr_300px]">
@@ -218,6 +253,7 @@ export default function AdvertiserCampaignDetail() {
                   <span className="text-slate-500">Platform fee</span>
                   <span className="font-semibold">GH₵{Number(campaign.platform_fee || 0).toLocaleString()}</span>
                 </div>
+              <div className="flex justify-between gap-4 border-t pt-3"><span className="font-semibold">Total funding</span><span className="font-bold">GH₵{(Number(campaign.budget||0)+Number(campaign.platform_fee||0)).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
               </div>
             </aside>
           </div>
