@@ -142,6 +142,33 @@ export async function POST(req: Request) {
       );
     }
 
+    if (existing.metadata?.purpose === "campaign_funding" && existing.metadata?.campaign_id) {
+      const campaignId = String(existing.metadata.campaign_id);
+      const { data: campaign } = await admin.from("campaigns").select("id,advertiser_id,status,budget,platform_fee,funding_status").eq("id", campaignId).maybeSingle();
+      if (campaign && campaign.advertiser_id === existing.user_id) {
+        const expectedTotal = Number(campaign.budget) + Number(campaign.platform_fee);
+        if (Math.abs(paid - expectedTotal) <= 0.01 && campaign.funding_status !== "PAID") {
+          await admin.from("campaigns").update({
+            funding_status: "PAID",
+            funded_amount: paid,
+            funded_at: tx.paid_at || tx.paidAt || verifiedAt,
+            payment_reference: reference,
+            status: "ACTIVE",
+            updated_at: verifiedAt,
+          }).eq("id", campaignId).eq("advertiser_id", existing.user_id);
+          await admin.from("notifications").insert({
+            user_id: existing.user_id,
+            title: "Campaign funded",
+            body: `Your campaign "${campaignId}" has been funded and is now active.`,
+            type: "CAMPAIGN_FUNDING",
+            entity_type: "campaign",
+            entity_id: campaignId,
+            href: `/advertiser/campaigns/${campaignId}`,
+          });
+        }
+      }
+    }
+
     if (existing.metadata?.purpose === "creator_program") {
       const { error: membershipError } = await admin
         .from("creator_memberships")
