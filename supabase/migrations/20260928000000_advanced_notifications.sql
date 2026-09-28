@@ -124,3 +124,13 @@ begin
 end; $$;
 drop trigger if exists transaction_status_notify on public.transactions;
 create trigger transaction_status_notify after update on public.transactions for each row execute function public.notify_transaction_events();
+
+revoke all on function public.notify_campaign_submitted() from public,anon,authenticated;
+revoke all on function public.notify_creator_application_submitted() from public,anon,authenticated;
+revoke all on function public.notify_creator_application_events() from public,anon,authenticated;
+revoke all on function public.notify_campaign_application_events() from public,anon,authenticated;
+revoke all on function public.notify_support_request_events() from public,anon,authenticated;
+revoke all on function public.notify_appeal_events() from public,anon,authenticated;
+revoke all on function public.notify_payment_complaint_events() from public,anon,authenticated;
+revoke all on function public.notify_campaign_events() from public,anon,authenticated;
+revoke all on function public.notify_transaction_events() from public,anon,authenticated;
