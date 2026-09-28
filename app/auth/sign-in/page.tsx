@@ -25,7 +25,7 @@ export default function SignIn() {
       document.cookie = `creatorhub_referral=${encodeURIComponent(code)}; Max-Age=2592000; Path=/; SameSite=Lax`;
     }
     if (params.get("error") === "oauth") setError("Google sign-in could not be completed. Please try again.");
-  }, []
+  }, []);
 
   const applyReferral = async (code: string) => {
     if (!code) return;
