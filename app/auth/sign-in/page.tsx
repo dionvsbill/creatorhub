@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { ArrowRight, Eye, EyeOff, Loader2, LockKeyhole, ShieldCheck, UsersRound } from "lucide-react";
 
@@ -12,20 +12,20 @@ function normalizeReferral(value: string) {
 
 export default function SignIn() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [email,setEmail]=useState(""); const [password,setPassword]=useState(""); const [referral,setReferral]=useState("");
   const [show,setShow]=useState(false); const [error,setError]=useState(""); const [loading,setLoading]=useState(false); const [googleLoading,setGoogleLoading]=useState(false);
 
   useEffect(() => {
-    const fromUrl = searchParams.get("ref") || searchParams.get("referral") || searchParams.get("referral_code") || "";
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = params.get("ref") || params.get("referral") || params.get("referral_code") || "";
     const fromCookie = document.cookie.match(/(?:^|; )creatorhub_referral=([^;]*)/)?.[1] || "";
     const code = normalizeReferral(fromUrl || decodeURIComponent(fromCookie));
     if (code) {
       setReferral(code);
       document.cookie = `creatorhub_referral=${encodeURIComponent(code)}; Max-Age=2592000; Path=/; SameSite=Lax`;
     }
-    if (searchParams.get("error") === "oauth") setError("Google sign-in could not be completed. Please try again.");
-  }, [searchParams]);
+    if (params.get("error") === "oauth") setError("Google sign-in could not be completed. Please try again.");
+  }, []
 
   const applyReferral = async (code: string) => {
     if (!code) return;
