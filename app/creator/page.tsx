@@ -187,7 +187,7 @@ export default function CreatorWorkspace() {
               <div className="grid gap-px bg-slate-200 sm:grid-cols-2">
                 <Action href="/campaigns" icon={Megaphone} title="Find campaigns" text="Browse active opportunities and open their full requirements." />
                 <Action href="/profile" icon={UserRound} title="Build your profile" text="Add your bio, social channels, professional title and profile photo." />
-                <Action href="/creator" icon={Send} title="Creator application" text="Apply for Creator Program participation and track administrator decisions." />
+                <Action href="/creator/apply" icon={Send} title="Creator application" text="Apply for Creator Program participation and track administrator decisions." />
                 <Action href="/earnings" icon={WalletCards} title="Earnings & withdrawals" text="Review completed earnings, pending balances and payment activity." />
                 <Action href="/referrals" icon={UsersIcon} title="Referral workspace" text="Track eligible referrals and referral activity." />
                 <Action href="/activity" icon={Clock3} title="Activity & notifications" text="Follow decisions, submissions and account events in real time." />
@@ -290,18 +290,28 @@ export default function CreatorWorkspace() {
                 <Status status={profile?.creator_status || "NOT_APPLIED"} />
               </div>
               <div className="mt-5">
-                {!application && active && !approved ? (
-                  <Link href="/creator/apply" className="btn btn-primary w-full">
-                    <Plus size={16} /> Start creator application
-                  </Link>
-                ) : application ? (
-                  <div className="rounded-xl border border-slate-200 p-4 text-sm text-slate-600">
-                    <div className="font-semibold">Latest application</div>
-                    <p className="mt-1">{application.review_note || "Your application is awaiting or has completed administrator review."}</p>
+                {active && !approved ? (
+                  <div>
+                    <Link href="/creator/apply" className="btn btn-primary w-full">
+                      <Plus size={16} /> {application?.status === "REJECTED" ? "Resubmit creator application" : application ? "Open creator application" : "Apply to Creator Program"}
+                    </Link>
+                    {application && (
+                      <div className="mt-3 rounded-xl border border-slate-200 p-4 text-sm text-slate-600">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="font-semibold">Latest application</span>
+                          <Status status={application.status} />
+                        </div>
+                        <p className="mt-2">{application.review_note || "Your application is awaiting administrator review."}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : approved ? (
+                  <div className="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-800">
+                    Your creator application has been approved. You can now apply to eligible campaigns.
                   </div>
                 ) : (
                   <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-500">
-                    Activate membership before starting the creator application.
+                    Activate Creator Program membership first, then the application button will appear here.
                   </div>
                 )}
               </div>
