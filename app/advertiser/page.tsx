@@ -79,10 +79,10 @@ export default function Advertise() {
 
               <div className="mt-8 flex gap-3">
                 <Link
-                  href="/campaigns"
+                  href="/advertiser/campaigns"
                   className="rounded-full bg-[#FDB913] px-6 py-3 font-bold text-[#0A1931]"
                 >
-                  Open campaigns{" "}
+                  Campaign workspace{" "}
                   <ArrowRight className="ml-2 inline" size={17} />
                 </Link>
                 <Link
