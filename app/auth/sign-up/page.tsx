@@ -97,7 +97,7 @@ export default function SignUp() {
           <div className="mx-auto mt-7 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600"><Check size={24}/></div>
           <h1 className="mt-5 text-2xl font-bold text-slate-950">Check your email</h1>
           <p className="mt-2 text-sm leading-6 text-slate-500">We sent a verification link to <strong className="text-slate-700">{email}</strong>. Verify your address to activate your account.</p>
-          <Link href="/auth/sign-in" className="btn btn-primary mt-7 w-full">Continue to sign in <ArrowRight size={16}/></Link>
+          <button type="button" disabled={resending||cooldown>0} onClick={async()=>{setResending(true);setResent(false);const {error:e}=await supabase().auth.resend({type:"signup",email:email.trim(),options:{emailRedirectTo:`${window.location.origin}/auth/callback?next=/dashboard`}});if(e)setError(e.message);else{setResent(true);setCooldown(60)}setResending(false)}} className="btn btn-primary mt-7 w-full disabled:opacity-60">{resending?"Sending verification email...":cooldown>0?`Resend verification email (${cooldown}s)`:"Resend verification email"} </button><Link href="/auth/sign-in" className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">Continue to sign in <ArrowRight size={16}/></Link>{resent&&<p className="mt-3 text-xs font-semibold text-emerald-700">Verification email requested. Check your inbox and spam folder.</p>}
         </div>
       </div>
     </main>
