@@ -11,6 +11,8 @@ export default function SignIn() {
   const [email,setEmail]=useState(""); const [password,setPassword]=useState("");
   const [show,setShow]=useState(false); const [error,setError]=useState(""); const [loading,setLoading]=useState(false); const [googleLoading,setGoogleLoading]=useState(false); const [needsVerification,setNeedsVerification]=useState(false); const [resending,setResending]=useState(false); const [resent,setResent]=useState(false); const [cooldown,setCooldown]=useState(0);
 
+  useEffect(()=>{if(cooldown<=0)return;const t=setInterval(()=>setCooldown(v=>Math.max(0,v-1)),1000);return()=>clearInterval(t)},[cooldown]);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("error") === "oauth") setError("Google sign-in could not be completed. Please try again.");
