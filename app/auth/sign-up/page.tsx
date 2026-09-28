@@ -23,7 +23,9 @@ export default function SignUp() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [done, setDone] = useState(false);
+  const [done, setDone] = useState(false); const [resending,setResending]=useState(false); const [resent,setResent]=useState(false); const [cooldown,setCooldown]=useState(0);
+
+  useEffect(()=>{if(cooldown<=0)return;const t=setInterval(()=>setCooldown(v=>Math.max(0,v-1)),1000);return()=>clearInterval(t)},[cooldown]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
