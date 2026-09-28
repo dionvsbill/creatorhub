@@ -34,7 +34,7 @@ export default function SignUp() {
       setReferral(code);
       document.cookie = `creatorhub_referral=${encodeURIComponent(code)}; Max-Age=2592000; Path=/; SameSite=Lax`;
     }
-  }, []
+  }, []);
 
   const applyReferral = async (code: string) => {
     if (!code) return;
