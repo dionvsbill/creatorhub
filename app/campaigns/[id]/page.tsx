@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
 import { supabase } from "@/lib/supabase";
-import { ArrowLeft, CalendarDays, ExternalLink, ShieldCheck, WalletCards, LockKeyhole, Send, CheckCircle2 } from "lucide-react";
+import CampaignMediaPreview, { DestinationLink } from "@/components/CampaignMediaPreview";\nimport { ArrowLeft, CalendarDays, ExternalLink, ShieldCheck, WalletCards, LockKeyhole, Send, CheckCircle2, ListChecks } from "lucide-react";
 
 export default function CampaignDetail() {
   const { id } = useParams<{ id: string }>();
@@ -131,7 +131,7 @@ export default function CampaignDetail() {
             <div className="mt-5 inline-flex rounded-full bg-white/10 px-3 py-2 text-xs font-bold">{String(campaign.status).replaceAll("_", " ")}</div>
           </div>
 
-          <div className="grid gap-4 border-b border-slate-200 p-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="border-b border-slate-200 p-6"><div className="flex items-center justify-between gap-3"><h2 className="font-bold">Campaign creative</h2><DestinationLink url={campaign.youtube_url || campaign.landing_url} label="Open destination" /></div><div className="mt-4"><CampaignMediaPreview url={campaign.media_url} type={campaign.media_type} title={campaign.title}/></div></div><div className="grid gap-4 border-b border-slate-200 p-6 sm:grid-cols-2 lg:grid-cols-4">
             <Info label="Budget" value={`GH₵${Number(campaign.budget || 0).toLocaleString()}`} />
             <Info label="Platform fee" value={`GH₵${Number(campaign.platform_fee || 0).toLocaleString()}`} />
             <Info label="Starts" value={campaign.starts_at ? new Date(campaign.starts_at).toLocaleString() : "Not set"} />
