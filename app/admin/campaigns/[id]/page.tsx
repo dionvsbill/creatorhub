@@ -67,7 +67,7 @@ export default function AdminCampaignDetail() {
     const { error } = await s
       .from("campaigns")
       .update({
-        status,
+        status: status==="ACTIVE" ? "PENDING_FUNDING" : status,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id);
@@ -84,7 +84,7 @@ export default function AdminCampaignDetail() {
       if (campaign?.advertiser_id) {
         const title =
           status === "ACTIVE"
-            ? "Campaign approved"
+            ? "Campaign approved — funding required"
             : status === "REJECTED"
               ? "Campaign rejected"
               : status === "PAUSED"
@@ -94,7 +94,7 @@ export default function AdminCampaignDetail() {
         const body =
           decision ||
           (status === "ACTIVE"
-            ? `Your campaign "${campaign.title}" has been approved and is now active.`
+            ? `Your campaign "${campaign.title}" has been approved. Fund it to activate the campaign.`
             : status === "REJECTED"
               ? `Your campaign "${campaign.title}" was not approved.`
               : `Your campaign "${campaign.title}" is now ${status.toLowerCase().replaceAll("_", " ")}.`);
