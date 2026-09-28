@@ -6,6 +6,9 @@ import AppShell from "@/components/AppShell";
 import { supabase } from "@/lib/supabase";
 import {
   ArrowRight,
+  ArrowUpRight,
+  Activity,
+  Target,
   BriefcaseBusiness,
   CheckCircle2,
   Clock3,
@@ -33,51 +36,22 @@ export default function CreatorWorkspace() {
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
   const [message, setMessage] = useState("");
+  const [range, setRange] = useState<"7D" | "30D" | "90D">("30D");
 
   const load = async () => {
     const s = supabase();
     const { data: { user } } = await s.auth.getUser();
     if (!user) return;
-
     const [p, m, ca, active, mine, tx] = await Promise.all([
-      s.from("profiles")
-        .select("id,display_name,username,avatar_url,creator_status,coins,cash_balance,pending_cash,youtube_url,instagram_url,tiktok_url,bio,professional_title")
-        .eq("id", user.id)
-        .single(),
-      s.from("creator_memberships")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle(),
-      s.from("creator_applications")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-      s.from("campaigns")
-        .select("id,title,kind,status,budget,spent,ends_at,created_at")
-        .eq("status", "ACTIVE")
-        .order("created_at", { ascending: false })
-        .limit(6),
-      s.from("campaign_applications")
-        .select("id,campaign_id,status,proposed_fee,submission_url,submission_note,created_at,updated_at")
-        .eq("creator_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(20),
-      s.from("transactions")
-        .select("id,type,amount,currency,status,reference,description,created_at")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(8),
+      s.from("profiles").select("id,display_name,username,avatar_url,creator_status,coins,cash_balance,pending_cash,youtube_url,instagram_url,tiktok_url,bio,professional_title").eq("id", user.id).single(),
+      s.from("creator_memberships").select("*").eq("user_id", user.id).maybeSingle(),
+      s.from("creator_applications").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+      s.from("campaigns").select("id,title,kind,status,budget,spent,ends_at,created_at").eq("status", "ACTIVE").order("created_at", { ascending: false }).limit(6),
+      s.from("campaign_applications").select("id,campaign_id,status,proposed_fee,submission_url,submission_note,created_at,updated_at").eq("creator_id", user.id).order("created_at", { ascending: false }).limit(20),
+      s.from("transactions").select("id,type,amount,currency,status,reference,description,created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(100),
     ]);
-
-    setProfile(p.data);
-    setMembership(m.data);
-    setApplication(ca.data);
-    setCampaigns(active.data || []);
-    setMyApplications(mine.data || []);
-    setEarnings(tx.data || []);
-    setLoading(false);
+    setProfile(p.data); setMembership(m.data); setApplication(ca.data); setCampaigns(active.data || []);
+    setMyApplications(mine.data || []); setEarnings(tx.data || []); setLoading(false);
   };
 
   useEffect(() => {
@@ -88,262 +62,168 @@ export default function CreatorWorkspace() {
   }, []);
 
   const join = async () => {
-    setPaying(true);
-    setMessage("");
+    setPaying(true); setMessage("");
     const { data: { session } } = await supabase().auth.getSession();
-    if (!session) {
-      setMessage("Please sign in first.");
-      setPaying(false);
-      return;
-    }
-
+    if (!session) { setMessage("Please sign in first."); setPaying(false); return; }
     const response = await fetch("/api/paystack/initialize", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        amount: FEE,
-        purpose: "creator_program",
-        description: "Creator Program membership",
-      }),
+      headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ amount: FEE, purpose: "creator_program", description: "Creator Program membership" }),
     });
     const data = await response.json();
-
-    if (!response.ok) {
-      setMessage(data.error || "Could not initialize payment.");
-      setPaying(false);
-      return;
-    }
-
+    if (!response.ok) { setMessage(data.error || "Could not initialize payment."); setPaying(false); return; }
     window.location.href = data.authorization_url;
   };
 
-  const stats = useMemo(() => ({
-    applications: myApplications.length,
-    pending: myApplications.filter((x) => x.status === "PENDING" || x.status === "SUBMITTED").length,
-    approved: myApplications.filter((x) => x.status === "APPROVED" || x.status === "COMPLETED").length,
-    earnings: earnings
-      .filter((x) => x.type === "CREATOR_EARNING" && x.status === "COMPLETED")
-      .reduce((sum, x) => sum + Number(x.amount || 0), 0),
-  }), [myApplications, earnings]);
+  const stats = useMemo(() => {
+    const completed = earnings.filter(x => String(x.status).toUpperCase() === "COMPLETED");
+    const earned = completed.filter(x => String(x.type).toUpperCase().includes("EARNING")).reduce((n,x) => n + Math.abs(Number(x.amount || 0)), 0);
+    const consumed = completed.filter(x => {
+      const t = String(x.type).toUpperCase();
+      return t.includes("WITHDRAW") || t.includes("PAYOUT") || t.includes("SPEND") || t.includes("DEBIT");
+    }).reduce((n,x) => n + Math.abs(Number(x.amount || 0)), 0);
+    const applications = myApplications.length;
+    const approved = myApplications.filter(x => ["APPROVED","COMPLETED"].includes(String(x.status).toUpperCase())).length;
+    const submitted = myApplications.filter(x => ["SUBMITTED","COMPLETED"].includes(String(x.status).toUpperCase())).length;
+    const days = range === "7D" ? 7 : range === "90D" ? 90 : 30;
+    const cutoff = Date.now() - days * 86400000;
+    const recent = completed.filter(x => new Date(x.created_at).getTime() >= cutoff);
+    const recentEarned = recent.filter(x => String(x.type).toUpperCase().includes("EARNING")).reduce((n,x) => n + Math.abs(Number(x.amount || 0)), 0);
+    return { earned, consumed, available: Number(profile?.cash_balance || 0), pending: Number(profile?.pending_cash || 0), applications, approved, submitted, recentEarned, success: applications ? Math.round((approved / applications) * 100) : 0 };
+  }, [earnings, myApplications, profile, range]);
 
-  if (loading) {
-    return <AppShell><div className="mx-auto max-w-7xl card p-10 text-sm text-slate-500">Loading creator workspace...</div></AppShell>;
-  }
+  const chart = useMemo(() => {
+    const days = range === "7D" ? 7 : range === "90D" ? 12 : 10;
+    const source = earnings.filter(x => String(x.status).toUpperCase() === "COMPLETED" && String(x.type).toUpperCase().includes("EARNING"));
+    return Array.from({length: days}, (_, i) => {
+      const end = Date.now() - (days - 1 - i) * (range === "90D" ? 7 : 1) * 86400000;
+      const start = end - (range === "90D" ? 7 : 1) * 86400000;
+      return source.filter(x => { const d = new Date(x.created_at).getTime(); return d >= start && d <= end; }).reduce((n,x) => n + Math.abs(Number(x.amount || 0)), 0);
+    });
+  }, [earnings, range]);
+  const maxChart = Math.max(...chart, 1);
+
+  if (loading) return <AppShell><div className="mx-auto max-w-7xl animate-pulse"><div className="h-48 rounded-[28px] bg-slate-200" /><div className="mt-6 grid gap-4 md:grid-cols-4">{[1,2,3,4].map(i => <div key={i} className="h-28 rounded-2xl bg-slate-200" />)}</div></div></AppShell>;
 
   const active = membership?.status === "ACTIVE";
   const approved = profile?.creator_status === "APPROVED";
+  const availableRatio = stats.earned ? Math.min(100, Math.round((stats.available / stats.earned) * 100)) : 0;
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-7xl">
-        <section className="overflow-hidden rounded-[28px] bg-[#0A1931] p-7 text-white shadow-xl lg:p-9">
-          <div className="flex flex-col justify-between gap-7 lg:flex-row lg:items-end">
-            <div className="flex items-center gap-5">
-              {profile?.avatar_url ? (
-                <img src={profile.avatar_url} alt="" className="h-20 w-20 rounded-2xl object-cover ring-1 ring-white/20" />
-              ) : (
-                <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/10">
-                  <UserRound size={30} />
-                </div>
-              )}
+      <div className="mx-auto max-w-7xl pb-12">
+        <section className="relative overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-[0_12px_40px_rgba(15,23,42,.07)]">
+          <div className="absolute inset-x-0 top-0 h-1 bg-[#0070ba]" />
+          <div className="flex flex-col gap-7 p-6 sm:p-8 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-4">
+              {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="h-16 w-16 rounded-full object-cover ring-4 ring-slate-50" /> : <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#0070ba]/10 text-[#0070ba]"><UserRound size={28}/></div>}
               <div>
-                <p className="text-xs font-bold uppercase tracking-[.18em] text-[#FDB913]">Creator workspace</p>
-                <h1 className="mt-1 text-3xl font-semibold">{profile?.display_name || "Creator"}</h1>
-                <p className="mt-1 text-sm text-slate-300">
-                  {profile?.professional_title || "Build your creator profile, find campaigns and deliver paid work."}
-                </p>
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.14em] text-slate-500"><span className="h-2 w-2 rounded-full bg-emerald-500" /> Creator account</div>
+                <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">Good to see you, {profile?.display_name || "Creator"}</h1>
+                <p className="mt-1 text-sm text-slate-500">{profile?.professional_title || "Your creator performance, earnings and opportunities in one place."}</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Link href="/profile" className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-4 py-2.5 text-sm font-semibold hover:bg-white/10">
-                <UserRound size={16} /> Edit profile
-              </Link>
-              <Link href="/campaigns" className="inline-flex items-center gap-2 rounded-xl bg-[#FDB913] px-4 py-2.5 text-sm font-bold text-[#0A1931]">
-                <Megaphone size={16} /> Find campaigns
-              </Link>
+              <Link href="/campaigns" className="inline-flex items-center gap-2 rounded-full bg-[#0070ba] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#005ea6]"><Megaphone size={16}/> Find campaigns</Link>
+              <Link href="/earnings" className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"><WalletCards size={16}/> Wallet</Link>
             </div>
           </div>
         </section>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <Stat icon={Coins} label="Coins" value={Number(profile?.coins || 0).toLocaleString()} />
-          <Stat icon={WalletCards} label="Available earnings" value={`GH₵${Number(profile?.cash_balance || 0).toFixed(2)}`} />
-          <Stat icon={Clock3} label="Pending earnings" value={`GH₵${Number(profile?.pending_cash || 0).toFixed(2)}`} />
-          <Stat icon={FileCheck2} label="Applications" value={String(stats.applications)} />
-        </div>
+        <section className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <Metric icon={ArrowUpRight} label="Total gained" value={`GH₵${stats.earned.toLocaleString(undefined,{minimumFractionDigits:2})}`} sub="Completed creator earnings" />
+          <Metric icon={CreditCard} label="Amount consumed" value={`GH₵${stats.consumed.toLocaleString(undefined,{minimumFractionDigits:2})}`} sub="Withdrawals and debits" />
+          <Metric icon={WalletCards} label="Amount left" value={`GH₵${stats.available.toLocaleString(undefined,{minimumFractionDigits:2})}`} sub={`GH₵${stats.pending.toFixed(2)} pending`} />
+          <Metric icon={Target} label="Success rate" value={`${stats.success}%`} sub={`${stats.approved} approved of ${stats.applications} applications`} />
+        </section>
 
-        <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_360px]">
+        <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_330px]">
           <main className="space-y-6">
-            <section className="card overflow-hidden">
-              <div className="flex flex-col justify-between gap-3 border-b border-slate-200 p-5 sm:flex-row sm:items-center">
-                <div>
-                  <h2 className="font-semibold">Your creator actions</h2>
-                  <p className="mt-1 text-xs text-slate-500">Everything you can do from the creator workspace.</p>
+            <section className="rounded-[26px] border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div><h2 className="text-lg font-semibold text-slate-950">Performance overview</h2><p className="mt-1 text-sm text-slate-500">Track how your completed creator earnings are moving over time.</p></div>
+                <div className="flex rounded-full bg-slate-100 p-1">
+                  {(["7D","30D","90D"] as const).map(x => <button key={x} onClick={() => setRange(x)} className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${range===x ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900"}`}>{x}</button>)}
                 </div>
               </div>
-              <div className="grid gap-px bg-slate-200 sm:grid-cols-2">
-                <Action href="/campaigns" icon={Megaphone} title="Find campaigns" text="Browse active opportunities and open their full requirements." />
-                <Action href="/profile" icon={UserRound} title="Build your profile" text="Add your bio, social channels, professional title and profile photo." />
-                <Action href="/creator/apply" icon={Send} title="Creator application" text="Apply for Creator Program participation and track administrator decisions." />
-                <Action href="/earnings" icon={WalletCards} title="Earnings & withdrawals" text="Review completed earnings, pending balances and payment activity." />
-                <Action href="/referrals" icon={UsersIcon} title="Referral workspace" text="Track eligible referrals and referral activity." />
-                <Action href="/activity" icon={Clock3} title="Activity & notifications" text="Follow decisions, submissions and account events in real time." />
+              <div className="mt-7 grid gap-6 lg:grid-cols-[1fr_190px]">
+                <div>
+                  <div className="flex h-48 items-end gap-2 border-b border-slate-100">
+                    {chart.map((v,i) => <div key={i} className="group flex h-full flex-1 items-end"><div title={`GH₵${v.toFixed(2)}`} className="mx-auto w-full max-w-[34px] rounded-t-lg bg-[#0070ba]/80 transition-all duration-500 group-hover:bg-[#005ea6]" style={{height:`${Math.max(5,(v/maxChart)*100)}%`}} /></div>)}
+                  </div>
+                  <div className="mt-3 flex justify-between text-[11px] text-slate-400"><span>{range === "90D" ? "12 weeks ago" : `${range === "7D" ? "7" : "30"} days ago`}</span><span>Today</span></div>
+                </div>
+                <div className="rounded-2xl bg-slate-50 p-5">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">{range} earnings</div>
+                  <div className="mt-2 text-2xl font-bold text-slate-950">GH₵{stats.recentEarned.toFixed(2)}</div>
+                  <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-[#0070ba] transition-all duration-700" style={{width:`${availableRatio}%`}}/></div>
+                  <div className="mt-2 flex justify-between text-xs text-slate-500"><span>Available</span><span>{availableRatio}%</span></div>
+                </div>
               </div>
             </section>
 
-            <section className="card overflow-hidden">
-              <div className="flex items-center justify-between border-b border-slate-200 p-5">
-                <div>
-                  <h2 className="font-semibold">Active campaign opportunities</h2>
-                  <p className="mt-1 text-xs text-slate-500">Campaigns currently available for creators.</p>
-                </div>
-                <Link href="/campaigns" className="text-sm font-semibold text-orange-600">View all</Link>
-              </div>
+            <section className="grid gap-4 md:grid-cols-3">
+              <Insight icon={BriefcaseBusiness} title="Campaign activity" value={String(stats.applications)} detail={`${stats.submitted} work submissions`} href="/campaigns" />
+              <Insight icon={Clock3} title="Pending balance" value={`GH₵${stats.pending.toFixed(2)}`} detail="Awaiting completion or release" href="/earnings" />
+              <Insight icon={Coins} title="Coin balance" value={Number(profile?.coins || 0).toLocaleString()} detail="Available platform coins" href="/referrals" />
+            </section>
+
+            <section className="rounded-[26px] border border-slate-200 bg-white shadow-sm">
+              <div className="flex items-center justify-between border-b border-slate-100 p-5 sm:p-6"><div><h2 className="font-semibold text-slate-950">Recent earnings</h2><p className="mt-1 text-xs text-slate-500">Your latest completed financial activity.</p></div><Link href="/earnings" className="text-sm font-semibold text-[#0070ba]">View all</Link></div>
               <div className="divide-y divide-slate-100">
-                {campaigns.map((c) => (
-                  <Link key={c.id} href={`/campaigns/${c.id}`} className="flex items-center justify-between gap-4 p-5 hover:bg-slate-50">
-                    <div>
-                      <div className="font-semibold">{c.title}</div>
-                      <div className="mt-1 text-xs text-slate-500">
-                        {String(c.kind).replaceAll("_", " ")} · Budget GH₵{Number(c.budget || 0).toLocaleString()}
-                      </div>
-                    </div>
-                    <ArrowRight size={17} className="text-slate-400" />
-                  </Link>
-                ))}
-                {!campaigns.length && <div className="p-8 text-sm text-slate-500">No active creator campaigns are available yet.</div>}
+                {earnings.filter(x => String(x.status).toUpperCase()==="COMPLETED").slice(0,6).map(x => <div key={x.id} className="flex items-center justify-between gap-4 p-5 transition hover:bg-slate-50"><div className="flex min-w-0 items-center gap-3"><div className="rounded-full bg-emerald-50 p-2.5 text-emerald-600"><ArrowUpRight size={16}/></div><div className="min-w-0"><div className="truncate text-sm font-semibold">{x.description || String(x.type).replaceAll("_"," ")}</div><div className="mt-1 text-xs text-slate-500">{new Date(x.created_at).toLocaleDateString()} · Completed</div></div></div><div className="font-semibold text-emerald-700">+ GH₵{Math.abs(Number(x.amount||0)).toFixed(2)}</div></div>)}
+                {!earnings.length && <div className="p-10 text-center text-sm text-slate-500">Your completed earnings will appear here.</div>}
               </div>
             </section>
 
-            <section className="card overflow-hidden">
-              <div className="border-b border-slate-200 p-5">
-                <h2 className="font-semibold">Your campaign applications</h2>
-                <p className="mt-1 text-xs text-slate-500">Track applications, approvals and work submissions.</p>
-              </div>
-              <div className="divide-y divide-slate-100">
-                {myApplications.map((row) => (
-                  <div key={row.id} className="p-5">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <div className="font-semibold">Campaign application</div>
-                        <div className="mt-1 text-xs text-slate-500">{new Date(row.created_at).toLocaleString()}</div>
-                      </div>
-                      <Status status={row.status} />
-                    </div>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                      <Info label="Proposed fee" value={`GH₵${Number(row.proposed_fee || 0).toFixed(2)}`} />
-                      <Info label="Submission" value={row.submission_url ? "Submitted" : "Not submitted"} />
-                      <Info label="Last update" value={new Date(row.updated_at || row.created_at).toLocaleDateString()} />
-                    </div>
-                    {(row.status === "APPROVED" || row.status === "SUBMITTED") && (
-                      <Link href={`/campaigns/${row.campaign_id}`} className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-orange-600">
-                        Open campaign & submit work <ArrowRight size={15} />
-                      </Link>
-                    )}
-                  </div>
-                ))}
-                {!myApplications.length && (
-                  <div className="p-8 text-center">
-                    <BriefcaseBusiness className="mx-auto text-slate-400" />
-                    <p className="mt-3 text-sm font-semibold">You have not applied to a campaign yet.</p>
-                    <Link href="/campaigns" className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-orange-600">Browse campaigns <ArrowRight size={15} /></Link>
-                  </div>
-                )}
-              </div>
+            <section className="rounded-[26px] border border-slate-200 bg-white shadow-sm">
+              <div className="flex items-center justify-between border-b border-slate-100 p-5 sm:p-6"><div><h2 className="font-semibold text-slate-950">Campaign opportunities</h2><p className="mt-1 text-xs text-slate-500">Active opportunities matched to the creator marketplace.</p></div><Link href="/campaigns" className="text-sm font-semibold text-[#0070ba]">Browse all</Link></div>
+              <div className="divide-y divide-slate-100">{campaigns.map(c => <Link key={c.id} href={`/campaigns/${c.id}`} className="flex items-center justify-between gap-4 p-5 transition hover:bg-slate-50"><div><div className="font-semibold">{c.title}</div><div className="mt-1 text-xs text-slate-500">{String(c.kind).replaceAll("_"," ")} · Budget GH₵{Number(c.budget||0).toLocaleString()}</div></div><ArrowRight size={17} className="text-slate-400"/></Link>)}{!campaigns.length&&<div className="p-8 text-sm text-slate-500">No active opportunities are available yet.</div>}</div>
             </section>
           </main>
 
           <aside className="space-y-6">
-            <section className="card p-5">
-              <div className="flex items-start gap-3">
-                <div className={`rounded-xl p-3 ${active ? "bg-emerald-50 text-emerald-600" : "bg-orange-50 text-orange-600"}`}>
-                  {active ? <CheckCircle2 size={21} /> : <LockKeyhole size={21} />}
-                </div>
-                <div className="flex-1">
-                  <h2 className="font-semibold">Creator Program</h2>
-                  <p className="mt-1 text-sm text-slate-500">
-                    {active ? "Membership is active." : "Membership is required for creator earning features."}
-                  </p>
-                </div>
+            <section className="rounded-[26px] border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="flex items-center justify-between"><div><h2 className="font-semibold">Creator status</h2><p className="mt-1 text-xs text-slate-500">Membership and approval are tracked separately.</p></div><Status status={active ? "ACTIVE" : profile?.creator_status || "NOT_APPLIED"}/></div>
+              <div className="mt-6 space-y-3">
+                <Link href="/creator/apply" className="flex items-center justify-between rounded-2xl border border-slate-200 p-4 transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-sm"><span><span className="block text-sm font-semibold">Creator application</span><span className="mt-1 block text-xs text-slate-500">{application ? String(application.status).replaceAll("_"," ") : "Start your application"}</span></span><ArrowRight size={16}/></Link>
+                <Link href="/profile" className="flex items-center justify-between rounded-2xl border border-slate-200 p-4 transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-sm"><span><span className="block text-sm font-semibold">Profile quality</span><span className="mt-1 block text-xs text-slate-500">Keep your creator identity complete</span></span><ArrowRight size={16}/></Link>
               </div>
-              {!active && (
-                <button onClick={join} disabled={paying} className="btn btn-primary mt-5 w-full">
-                  <CreditCard size={16} /> {paying ? "Opening payment..." : `Join for GH₵${FEE}`}
-                </button>
-              )}
-              {active && (
-                <div className="mt-5 rounded-xl bg-emerald-50 p-4 text-sm text-emerald-800">
-                  Membership active. You can participate in eligible creator opportunities.
-                </div>
-              )}
+              {!active && <button onClick={join} disabled={paying} className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#0070ba] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#005ea6] disabled:opacity-60"><CreditCard size={16}/>{paying ? "Opening payment..." : "Activate Creator Program"}</button>}
             </section>
 
-            <section className="card p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="font-semibold">Creator approval</h2>
-                  <p className="mt-1 text-xs text-slate-500">Separate from membership payment.</p>
-                </div>
-                <Status status={profile?.creator_status || "NOT_APPLIED"} />
+            <section className="rounded-[26px] border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="flex items-center gap-2"><Activity size={18} className="text-[#0070ba]"/><h2 className="font-semibold">Quick insights</h2></div>
+              <div className="mt-5 space-y-4">
+                <Mini label="Available after earnings" value={`GH₵${stats.available.toFixed(2)}`} />
+                <Mini label="Pending to be released" value={`GH₵${stats.pending.toFixed(2)}`} />
+                <Mini label="Completed applications" value={String(stats.approved)} />
+                <Mini label="Current coins" value={Number(profile?.coins||0).toLocaleString()} />
               </div>
-              <div className="mt-5">
-                {active && !approved ? (
-                  <div>
-                    <Link href="/creator/apply" className="btn btn-primary w-full">
-                      <Plus size={16} /> {application?.status === "REJECTED" ? "Resubmit creator application" : application ? "Open creator application" : "Apply to Creator Program"}
-                    </Link>
-                    {application && (
-                      <div className="mt-3 rounded-xl border border-slate-200 p-4 text-sm text-slate-600">
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="font-semibold">Latest application</span>
-                          <Status status={application.status} />
-                        </div>
-                        <p className="mt-2">{application.review_note || "Your application is awaiting administrator review."}</p>
-                      </div>
-                    )}
-                  </div>
-                ) : approved ? (
-                  <div className="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-800">
-                    Your creator application has been approved. You can now apply to eligible campaigns.
-                  </div>
-                ) : (
-                  <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-500">
-                    Activate Creator Program membership first, then the application button will appear here.
-                  </div>
-                )}
-              </div>
+              <Link href="/activity" className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4 text-sm font-semibold text-[#0070ba]">Open full activity <ArrowRight size={15}/></Link>
             </section>
 
-            <section className="card p-5">
-              <div className="flex items-center gap-2">
-                <WalletCards size={18} />
-                <h2 className="font-semibold">Recent financial activity</h2>
-              </div>
-              <div className="mt-4 space-y-3">
-                {earnings.slice(0, 5).map((x) => (
-                  <div key={x.id} className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-medium">{x.description || x.type.replaceAll("_", " ")}</div>
-                      <div className="text-xs text-slate-500">{new Date(x.created_at).toLocaleDateString()}</div>
-                    </div>
-                    <div className="text-right text-sm font-semibold">GH₵{Number(x.amount || 0).toFixed(2)}</div>
-                  </div>
-                ))}
-                {!earnings.length && <p className="text-sm text-slate-500">No financial activity yet.</p>}
-              </div>
-              <Link href="/earnings" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-orange-600">Open earnings <ArrowRight size={15} /></Link>
+            <section className="rounded-[26px] bg-slate-950 p-6 text-white shadow-sm">
+              <div className="text-xs font-semibold uppercase tracking-[.15em] text-slate-400">Creator toolkit</div>
+              <h2 className="mt-2 text-xl font-semibold">Everything in one workspace</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-400">Campaigns, applications, earnings, referrals, notifications and account activity stay connected.</p>
+              <div className="mt-5 grid gap-2"><Link href="/referrals" className="rounded-xl bg-white/10 px-4 py-3 text-sm font-medium transition hover:bg-white/15">Referral workspace</Link><Link href="/notifications" className="rounded-xl bg-white/10 px-4 py-3 text-sm font-medium transition hover:bg-white/15">Notifications</Link><Link href="/activity" className="rounded-xl bg-white/10 px-4 py-3 text-sm font-medium transition hover:bg-white/15">Activity history</Link></div>
             </section>
           </aside>
         </div>
-
-        {message && <div className="fixed bottom-5 right-5 z-50 max-w-sm rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-xl">{message}</div>}
+        {message && <div className="fixed bottom-5 right-5 z-50 max-w-sm rounded-2xl border border-slate-200 bg-white p-4 text-sm shadow-2xl">{message}</div>}
       </div>
     </AppShell>
   );
 }
+
+function Metric({icon:Icon,label,value,sub}:{icon:any;label:string;value:string;sub:string}) {
+  return <div className="group rounded-[22px] border border-slate-200 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg"><div className="flex items-center justify-between"><div className="rounded-xl bg-slate-50 p-2.5 text-[#0070ba]"><Icon size={18}/></div><ArrowRight size={15} className="text-slate-300 transition group-hover:translate-x-1"/></div><div className="mt-4 text-2xl font-bold tracking-tight text-slate-950">{value}</div><div className="mt-1 text-sm font-semibold text-slate-700">{label}</div><div className="mt-1 text-xs text-slate-400">{sub}</div></div>;
+}
+function Insight({icon:Icon,title,value,detail,href}:{icon:any;title:string;value:string;detail:string;href:string}) {
+  return <Link href={href} className="group rounded-[22px] border border-slate-200 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg"><div className="flex items-center justify-between"><Icon size={18} className="text-[#0070ba]"/><ArrowUpRight size={15} className="text-slate-300 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5"/></div><div className="mt-4 text-xl font-bold">{value}</div><div className="mt-1 text-sm font-semibold">{title}</div><div className="mt-1 text-xs text-slate-500">{detail}</div></Link>;
+}
+function Mini({label,value}:{label:string;value:string}) { return <div className="flex items-center justify-between gap-4"><span className="text-sm text-slate-500">{label}</span><span className="text-sm font-semibold text-slate-900">{value}</span></div>; }
 
 function Stat({ icon: Icon, label, value }: any) {
   return <div className="card p-5"><Icon size={18} className="text-orange-600" /><div className="mt-3 text-xl font-bold">{value}</div><div className="text-xs font-semibold text-slate-500">{label}</div></div>;
