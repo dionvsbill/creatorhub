@@ -8,11 +8,8 @@ export const metadata = {
   metadataBase: new URL("https://creatorhub-8bd5.onrender.com"),
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: [
-      { url: "/favicon.ico", type: "image/x-icon" },
-      { url: "/icon.svg", type: "image/svg+xml" },
-    ],
-    shortcut: "/favicon.ico",
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    shortcut: "/favicon.svg",
     apple: "/icon.svg",
   },
   openGraph: {
