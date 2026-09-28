@@ -41,7 +41,7 @@ export default function CreatorWorkspace() {
 
     const [p, m, ca, active, mine, tx] = await Promise.all([
       s.from("profiles")
-        .select("id,display_name,username,avatar_url,creator_status,coins,cash_balance,pending_cash,youtube_url,instagram_url,tiktok_url,bio")
+        .select("id,display_name,username,avatar_url,creator_status,coins,cash_balance,pending_cash,youtube_url,instagram_url,tiktok_url,bio,professional_title")
         .eq("id", user.id)
         .single(),
       s.from("creator_memberships")
