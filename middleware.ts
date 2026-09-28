@@ -32,6 +32,7 @@ export async function middleware(request: NextRequest) {
   if (user) {
     const { data: profile } = await supabase.from("profiles").select("account_status,username,banned_until,banned_permanently").eq("id", user.id).maybeSingle();
     if (profile?.account_status === "SUSPENDED" || profile?.banned_permanently || (profile?.banned_until && new Date(profile.banned_until).getTime() > Date.now())) {
+      if (path.startsWith("/api/")) return NextResponse.json({ error: "This account is restricted from using CreatorHub services." }, { status: 403 });
       return NextResponse.redirect(new URL("/auth/sign-in?error=suspended", request.url));
     }
     const usernameSetupAllowed = path === "/auth/username" || path.startsWith("/auth/callback");
@@ -44,4 +45,4 @@ export async function middleware(request: NextRequest) {
   }
   return response;
 }
-export const config = { matcher: ["/((?!_next/static|_next/image|favicon.ico|api).*)" ] };
+export const config = { matcher: ["/((?!_next/static|_next/image|favicon.ico).*)" ] };
