@@ -36,10 +36,10 @@ export async function POST(request:Request,{params}:{params:{id:string}}){
    await db.auth.admin.updateUserById(params.id,{ban_duration:"none"});
    await db.from("user_bans").update({revoked_at:new Date().toISOString(),revoked_by:actor}).eq("user_id",params.id).is("revoked_at",null);
  } else if(action==="delete"){
-   const result=await db.auth.admin.deleteUser(params.id,{shouldSoftDelete:false});
+   const result=await db.auth.admin.deleteUser(params.id,false);
    if(result.error)return NextResponse.json({error:result.error.message},{status:400});
  } else if(action==="soft_delete"){
-   const result=await db.auth.admin.deleteUser(params.id,{shouldSoftDelete:true});
+   const result=await db.auth.admin.deleteUser(params.id,true);
    if(result.error)return NextResponse.json({error:result.error.message},{status:400});
    await db.from("profiles").update({account_status:"DELETED",moderation_note:reason}).eq("id",params.id);
  } else return NextResponse.json({error:"Unknown moderation action"},{status:400});
