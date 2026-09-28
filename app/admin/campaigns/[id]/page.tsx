@@ -285,11 +285,11 @@ export default function AdminCampaignDetail() {
                   <>
                     <button
                       disabled={saving}
-                      onClick={() => setStatus("ACTIVE")}
+                      onClick={() => setStatus("PENDING_FUNDING")}
                       className="btn btn-primary w-full"
                     >
                       <CheckCircle2 size={16} />
-                      Approve campaign
+                      Approve & request funding
                     </button>
                     <button
                       disabled={saving}
