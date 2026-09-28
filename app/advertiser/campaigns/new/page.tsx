@@ -4,14 +4,14 @@ import {useRouter} from "next/navigation";
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
 import {supabase} from "@/lib/supabase";
-import {ArrowLeft,Megaphone,WalletCards,Link2,Info,ShieldCheck,Calculator} from "lucide-react";
+import {ArrowLeft,Megaphone,WalletCards,Link2,Info,ShieldCheck,Calculator,Image as ImageIcon,Video} from "lucide-react";
 
 const kinds=["CREATOR","UGC","SPONSORED_CONTENT","TRAFFIC","AFFILIATE","GOOGLE_ADS"];
 
 export default function NewCampaign(){
  const router=useRouter();
  const [feeRate,setFeeRate]=useState(5);
- const [f,setF]=useState({title:"",description:"",kind:"CREATOR",budget:"",youtube_url:"",landing_url:"",starts_at:"",ends_at:""});
+ const [f,setF]=useState({title:"",description:"",kind:"CREATOR",budget:"",youtube_url:"",landing_url:"",media_url:"",media_type:"IMAGE",starts_at:"",ends_at:""});
  const [error,setError]=useState(""); const [loading,setLoading]=useState(false);
  const set=(k:string,v:string)=>setF(x=>({...x,[k]:v}));
  useEffect(()=>{supabase().from("platform_settings").select("value_numeric").eq("key","campaign_platform_fee_rate").maybeSingle().then(({data})=>{if(data?.value_numeric!=null)setFeeRate(Number(data.value_numeric))})},[]);
@@ -23,7 +23,7 @@ export default function NewCampaign(){
   const s=supabase(); const {data:{user}}=await s.auth.getUser();
   if(!user){router.push("/auth/sign-in");return}
   if(!f.title.trim()||budget<=0){setError("Enter a campaign title and a budget greater than zero.");setLoading(false);return}
-  const {data,error}=await s.from("campaigns").insert({advertiser_id:user.id,title:f.title.trim(),description:f.description.trim(),kind:f.kind,status:"PENDING_REVIEW",budget,platform_fee:platformFee,spent:0,currency:"GHS",youtube_url:f.youtube_url||null,landing_url:f.landing_url||null,starts_at:f.starts_at?new Date(f.starts_at).toISOString():null,ends_at:f.ends_at?new Date(f.ends_at).toISOString():null}).select("id").single();
+  const {data,error}=await s.from("campaigns").insert({advertiser_id:user.id,title:f.title.trim(),description:f.description.trim(),kind:f.kind,status:"PENDING_REVIEW",budget,platform_fee:platformFee,spent:0,currency:"GHS",youtube_url:f.youtube_url||null,landing_url:f.landing_url||null,media_url:f.media_url||null,media_type:f.media_url?f.media_type:null,starts_at:f.starts_at?new Date(f.starts_at).toISOString():null,ends_at:f.ends_at?new Date(f.ends_at).toISOString():null}).select("id").single();
   if(error){setError(error.message);setLoading(false);return}
   await s.from("audit_logs").insert({actor_id:user.id,action:"CAMPAIGN_SUBMITTED_FOR_REVIEW",entity_type:"campaign",entity_id:data.id,metadata:{title:f.title,kind:f.kind,budget,platform_fee:platformFee,total_funding:total}});
   router.push("/advertiser/campaigns/"+data.id);
