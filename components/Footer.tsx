@@ -61,9 +61,6 @@ export default function Footer() {
                 src="/creatorhub-mark.svg"
                 alt="CreatorHub"
                 className="h-11 w-11 shrink-0"
-                onError={(event) => {
-                  event.currentTarget.src = "/icon.svg";
-                }}
               />
               <span className="text-lg font-bold tracking-tight text-white">CreatorHub</span>
             </Link>
