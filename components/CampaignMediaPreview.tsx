@@ -4,7 +4,7 @@ function youtubeId(value:string){
   try{
     const u=new URL(value);
     if(u.hostname.includes("youtu.be")) return u.pathname.slice(1).split("/")[0];
-    if(u.hostname.includes("youtube.com")) return u.searchParams.get("v") || u.pathname.match(/\\/(?:shorts|embed)\\/([^/?]+)/)?.[1] || null;
+    if(u.hostname.includes("youtube.com")) { const parts=u.pathname.split("/"); const i=parts.findIndex(x=>x==="shorts"||x==="embed"); return u.searchParams.get("v") || (i>=0?parts[i+1]:null); }
   }catch{}
   return null;
 }
