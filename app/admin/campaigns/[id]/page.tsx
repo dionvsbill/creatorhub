@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import AppShell from "@/components/AppShell";\nimport CampaignMediaPreview, { DestinationLink } from "@/components/CampaignMediaPreview";
+import AppShell from "@/components/AppShell";
+import CampaignMediaPreview, { DestinationLink } from "@/components/CampaignMediaPreview";
 import { supabase } from "@/lib/supabase";
 import {
   ArrowLeft,
