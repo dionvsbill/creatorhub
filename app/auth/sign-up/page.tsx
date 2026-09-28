@@ -1,17 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { FormEvent, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { ArrowRight, Check, Eye, EyeOff, Loader2, ShieldCheck, UserPlus } from "lucide-react";
+import { ArrowRight, Check, Eye, EyeOff, Loader2, ShieldCheck, UserPlus, UsersRound } from "lucide-react";
+
+function normalizeReferral(value: string) {
+  return value.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "").slice(0, 32);
+}
 
 export default function SignUp() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [referral, setReferral] = useState("");
   const [show, setShow] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [agree, setAgree] = useState(false);
@@ -20,6 +26,30 @@ export default function SignUp() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [done, setDone] = useState(false);
 
+  useEffect(() => {
+    const fromUrl = searchParams.get("ref") || searchParams.get("referral") || searchParams.get("referral_code") || "";
+    const fromCookie = document.cookie.match(/(?:^|; )creatorhub_referral=([^;]*)/)?.[1] || "";
+    const code = normalizeReferral(fromUrl || decodeURIComponent(fromCookie));
+    if (code) {
+      setReferral(code);
+      document.cookie = `creatorhub_referral=${encodeURIComponent(code)}; Max-Age=2592000; Path=/; SameSite=Lax`;
+    }
+  }, [searchParams]);
+
+  const applyReferral = async (code: string) => {
+    if (!code) return;
+    const response = await fetch("/api/referrals/apply", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || "The referral code could not be applied.");
+    }
+    document.cookie = "creatorhub_referral=; Max-Age=0; Path=/; SameSite=Lax";
+  };
+
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
@@ -27,19 +57,31 @@ export default function SignUp() {
     if (password !== confirm) return setError("Passwords do not match.");
     if (!agree) return setError("Please accept the Terms and Privacy Policy to continue.");
     setLoading(true);
-    const { error } = await supabase().auth.signUp({
+    const code = normalizeReferral(referral);
+    if (code) document.cookie = `creatorhub_referral=${encodeURIComponent(code)}; Max-Age=2592000; Path=/; SameSite=Lax`;
+    const { data, error } = await supabase().auth.signUp({
       email: email.trim(),
       password,
-      options: { data: { full_name: name.trim() }, emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard` },
+      options: {
+        data: { full_name: name.trim(), referral_code: code || null },
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+      },
     });
     if (error) setError(error.message);
-    else setDone(true);
+    else {
+      if (data.session && code) {
+        try { await applyReferral(code); } catch {}
+      }
+      setDone(true);
+    }
     setLoading(false);
   };
 
   const google = async () => {
     setError("");
     setGoogleLoading(true);
+    const code = normalizeReferral(referral);
+    if (code) document.cookie = `creatorhub_referral=${encodeURIComponent(code)}; Max-Age=2592000; Path=/; SameSite=Lax`;
     const { error } = await supabase().auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth/callback?next=/dashboard` },
@@ -91,6 +133,7 @@ export default function SignUp() {
                 <label className="block text-sm font-medium">Email address<input required type="email" value={email} onChange={e=>setEmail(e.target.value)} className="input mt-2" placeholder="you@example.com"/></label>
                 <Password label="Password" value={password} onChange={setPassword} show={show} setShow={setShow} />
                 <Password label="Confirm password" value={confirm} onChange={setConfirm} show={showConfirm} setShow={setShowConfirm} />
+                <label className="block text-sm font-medium">Referral code <span className="font-normal text-slate-400">(optional)</span><div className="relative mt-2"><UsersRound size={17} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/><input value={referral} onChange={e=>setReferral(normalizeReferral(e.target.value))} className="input pl-10 uppercase" placeholder="Enter referral code"/></div><span className="mt-1 block text-xs text-slate-400">{referral ? "Referral code detected or entered. It will be attached to this account." : "If you arrived from a referral link, the code will appear here automatically."}</span></label>
                 <label className="flex items-start gap-3 pt-1 text-sm text-slate-500"><input type="checkbox" checked={agree} onChange={e=>setAgree(e.target.checked)} className="mt-1 h-4 w-4 accent-orange-600"/><span>I agree to the <Link href="/legal/terms" className="font-semibold text-slate-800">Terms</Link> and <Link href="/legal/privacy" className="font-semibold text-slate-800">Privacy Policy</Link>.</span></label>
                 {error&&<div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
                 <button disabled={loading} className="btn btn-primary w-full py-3.5">{loading?<Loader2 size={17} className="animate-spin"/>:<UserPlus size={17}/>}Create account {!loading&&<ArrowRight size={16}/>}</button>
