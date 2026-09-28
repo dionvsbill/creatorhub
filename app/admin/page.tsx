@@ -15,7 +15,7 @@ export default function Admin(){
    s.from("campaigns").select("id",{count:"exact",head:true}),
    s.from("campaigns").select("id",{count:"exact",head:true}).eq("status","PENDING_REVIEW"),
    s.from("campaigns").select("id",{count:"exact",head:true}).eq("status","PENDING_FUNDING"),
-   s.from("campaigns").select("platform_fee,funded_amount").eq("funding_status","PAID"),
+   s.from("campaigns").select("platform_fee,funded_amount,budget").eq("funding_status","PAID"),
    s.from("transactions").select("id",{count:"exact",head:true}).eq("type","WITHDRAWAL").eq("status","PENDING"),
    s.from("audit_logs").select("id",{count:"exact",head:true}).gte("created_at",new Date(Date.now()-86400000).toISOString()),
    s.from("campaigns").select("id,title,status,budget,platform_fee,funding_status,created_at").order("created_at",{ascending:false}).limit(6)
