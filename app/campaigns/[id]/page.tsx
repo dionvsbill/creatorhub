@@ -5,7 +5,8 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
 import { supabase } from "@/lib/supabase";
-import CampaignMediaPreview, { DestinationLink } from "@/components/CampaignMediaPreview";\nimport { ArrowLeft, CalendarDays, ExternalLink, ShieldCheck, WalletCards, LockKeyhole, Send, CheckCircle2, ListChecks } from "lucide-react";
+import CampaignMediaPreview, { DestinationLink } from "@/components/CampaignMediaPreview";
+import { ArrowLeft, CalendarDays, ExternalLink, ShieldCheck, WalletCards, LockKeyhole, Send, CheckCircle2, ListChecks } from "lucide-react";
 
 export default function CampaignDetail() {
   const { id } = useParams<{ id: string }>();
