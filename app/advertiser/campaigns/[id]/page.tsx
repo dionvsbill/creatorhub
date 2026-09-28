@@ -149,7 +149,7 @@ export default function AdvertiserCampaignDetail() {
             <Info label="Total required" value={`GH₵${(Number(campaign.budget||0)+Number(campaign.platform_fee||0)).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`} />
           </div>
 
-          <div className="grid gap-6 p-6 lg:grid-cols-[1fr_300px]">
+          <div className="border-b border-slate-200 p-6"><div className="flex items-center justify-between"><h2 className="font-bold">Campaign creative</h2><DestinationLink url={campaign.youtube_url || campaign.landing_url} label="Open destination" /></div><div className="mt-4"><CampaignMediaPreview url={campaign.media_url} type={campaign.media_type} title={campaign.title}/></div></div><div className="grid gap-6 p-6 lg:grid-cols-[1fr_300px]">
             <main className="space-y-6">
               <section className="rounded-2xl border border-slate-200 p-5">
                 <div className="flex items-center gap-2">
