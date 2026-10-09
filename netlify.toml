@@ -1,0 +1,13 @@
+[build]
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "24"
+
+# Keep CreatorHub's API and server-side workflows on the existing Render service.
+# Browser requests to /api/* remain same-origin and are proxied to Render.
+[[redirects]]
+  from = "/api/*"
+  to = "https://creatorhub-8bd5.onrender.com/api/:splat"
+  status = 200
+  force = true
